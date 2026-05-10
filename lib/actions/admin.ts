@@ -131,3 +131,91 @@ export async function resolveDispute(disputeId: string, verdict: 'upheld' | 'dis
   revalidatePath('/admin/disputes')
   return { success: true }
 }
+
+export async function banUser(userId: string, permanent: boolean) {
+  const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated.' }
+
+  const { data: profile } = await db
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+  if (!profile?.is_admin) return { error: 'Forbidden.' }
+
+  const update = permanent
+    ? { permabanned: true }
+    : { banned_until: new Date(Date.now() + 7 * 86400 * 1000).toISOString() }
+
+  const { error } = await db.from('profiles').update(update).eq('id', userId)
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/users')
+  return { success: true }
+}
+
+export async function unbanUser(userId: string) {
+  const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated.' }
+
+  const { data: profile } = await db
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+  if (!profile?.is_admin) return { error: 'Forbidden.' }
+
+  const { error } = await db
+    .from('profiles')
+    .update({ permabanned: false, banned_until: null })
+    .eq('id', userId)
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/users')
+  return { success: true }
+}
+
+export async function updateSettings(formData: FormData) {
+  const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated.' }
+
+  const { data: profile } = await db
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+  if (!profile?.is_admin) return { error: 'Forbidden.' }
+
+  const listingFee = Number(formData.get('listing_fee'))
+  if (isNaN(listingFee) || listingFee < 0) return { error: 'Invalid listing fee.' }
+
+  const updates: Record<string, unknown> = {
+    listing_fee: listingFee,
+    gcash_number: formData.get('gcash_number'),
+    gcash_name: formData.get('gcash_name'),
+  }
+
+  const qrFile = formData.get('gcash_qr') as File
+  if (qrFile && qrFile.size > 0) {
+    const { error: uploadError } = await supabase.storage
+      .from('listing-photos')
+      .upload('admin/gcash-qr.png', qrFile, { upsert: true })
+    if (uploadError) return { error: uploadError.message }
+    updates.gcash_qr_url = 'admin/gcash-qr.png'
+  }
+
+  const { error } = await db.from('settings').update(updates).eq('id', 1)
+  if (error) return { error: error.message }
+
+  revalidatePath('/admin/settings')
+  return { success: true }
+}
