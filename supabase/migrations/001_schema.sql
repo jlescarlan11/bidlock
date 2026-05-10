@@ -47,10 +47,10 @@ CREATE TABLE listings (
   auctioneer_id       uuid NOT NULL REFERENCES profiles ON DELETE CASCADE,
   title               text NOT NULL,
   description         text NOT NULL,
-  starting_bid        numeric NOT NULL,
-  current_bid         numeric NOT NULL,
+  starting_bid        numeric NOT NULL CHECK (starting_bid > 0),
+  current_bid         numeric NOT NULL CHECK (current_bid > 0),
   current_bidder_id   uuid REFERENCES profiles,
-  duration_days       int NOT NULL,
+  duration_days       int NOT NULL CHECK (duration_days IN (1, 3, 7)),
   status              listing_status NOT NULL DEFAULT 'pending_payment',
   rejection_reason    text,
   payment_proof_url   text,
@@ -80,7 +80,7 @@ CREATE TABLE bids (
   id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   listing_id  uuid NOT NULL REFERENCES listings ON DELETE CASCADE,
   bidder_id   uuid NOT NULL REFERENCES profiles ON DELETE CASCADE,
-  amount      numeric NOT NULL,
+  amount      numeric NOT NULL CHECK (amount > 0),
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
@@ -191,10 +191,20 @@ CREATE POLICY "listings_update_admin" ON listings FOR UPDATE USING (
 -- Listing photos
 CREATE POLICY "photos_read_public" ON listing_photos FOR SELECT USING (true);
 CREATE POLICY "photos_insert_owner" ON listing_photos FOR INSERT WITH CHECK (
-  EXISTS (SELECT 1 FROM listings WHERE id = listing_id AND auctioneer_id = auth.uid())
+  EXISTS (
+    SELECT 1 FROM listings
+    WHERE id = listing_id
+      AND auctioneer_id = auth.uid()
+      AND status IN ('pending_payment', 'awaiting_review')
+  )
 );
 CREATE POLICY "photos_delete_owner" ON listing_photos FOR DELETE USING (
-  EXISTS (SELECT 1 FROM listings WHERE id = listing_id AND auctioneer_id = auth.uid())
+  EXISTS (
+    SELECT 1 FROM listings
+    WHERE id = listing_id
+      AND auctioneer_id = auth.uid()
+      AND status IN ('pending_payment', 'awaiting_review')
+  )
 );
 
 -- Bids

@@ -1,14 +1,32 @@
+-- NOTE: The bids table has no RLS INSERT policy by design.
+-- All bid inserts must go through place_bid() (SECURITY DEFINER),
+-- which enforces all business rules atomically under a row lock.
+-- Direct inserts from application code or service-role clients
+-- are not supported and will be blocked by RLS.
+
 -- place_bid: atomic bid placement with race protection
 CREATE OR REPLACE FUNCTION place_bid(
   p_listing_id uuid,
-  p_bidder_id  uuid,
   p_amount     numeric
 ) RETURNS json
-LANGUAGE plpgsql SECURITY DEFINER AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_listing  listings%ROWTYPE;
+  v_profile  profiles%ROWTYPE;
+  v_bidder   uuid;
   v_min_bid  numeric;
 BEGIN
+  v_bidder := auth.uid();
+  IF v_bidder IS NULL THEN
+    RAISE EXCEPTION 'not_authenticated';
+  END IF;
+
+  -- Check ban status
+  SELECT * INTO v_profile FROM profiles WHERE id = v_bidder;
+  IF v_profile.permabanned OR (v_profile.banned_until IS NOT NULL AND v_profile.banned_until >= now()) THEN
+    RAISE EXCEPTION 'bidder_is_banned';
+  END IF;
+
   SELECT * INTO v_listing FROM listings WHERE id = p_listing_id FOR UPDATE;
 
   IF NOT FOUND THEN
@@ -20,7 +38,7 @@ BEGIN
   IF now() >= v_listing.ends_at THEN
     RAISE EXCEPTION 'auction_ended';
   END IF;
-  IF p_bidder_id = v_listing.auctioneer_id THEN
+  IF v_bidder = v_listing.auctioneer_id THEN
     RAISE EXCEPTION 'bidder_is_auctioneer';
   END IF;
 
@@ -30,10 +48,10 @@ BEGIN
   END IF;
 
   INSERT INTO bids (listing_id, bidder_id, amount)
-  VALUES (p_listing_id, p_bidder_id, p_amount);
+  VALUES (p_listing_id, v_bidder, p_amount);
 
   UPDATE listings
-  SET current_bid = p_amount, current_bidder_id = p_bidder_id
+  SET current_bid = p_amount, current_bidder_id = v_bidder
   WHERE id = p_listing_id;
 
   IF (v_listing.ends_at - now()) < interval '2 minutes' THEN
@@ -47,7 +65,7 @@ $$;
 -- finalize_auctions: called by cron to end expired live listings
 CREATE OR REPLACE FUNCTION finalize_auctions()
 RETURNS int
-LANGUAGE plpgsql SECURITY DEFINER AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_listing  listings%ROWTYPE;
   v_count    int := 0;
