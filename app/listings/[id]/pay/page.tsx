@@ -36,9 +36,7 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
     )
   }
 
-  const qrUrl = settings.gcash_qr_url
-    ? supabase.storage.from('listing-photos').getPublicUrl(settings.gcash_qr_url!).data.publicUrl
-    : null
+  const qrUrl = settings.gcash_qr_url || null
 
   return (
     <div className="max-w-md mx-auto p-4 pt-8 space-y-6">

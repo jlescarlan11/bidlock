@@ -16,6 +16,7 @@ export default async function ProfilePage() {
     .maybeSingle()
 
   if (profileError) {
+    console.error('[profile page] profileError:', JSON.stringify(profileError))
     throw new Error('Failed to load profile. Please refresh.')
   }
 
