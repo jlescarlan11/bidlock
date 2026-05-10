@@ -24,8 +24,7 @@ export async function upsertProfile(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
     .from('profiles')
-    .update(parsed.data)
-    .eq('id', user.id)
+    .upsert({ id: user.id, ...parsed.data })
 
   if (error) return { error: error.message }
 

@@ -7,11 +7,15 @@ export default async function ProfilePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('display_name, phone_number, gcash_name')
     .eq('id', user.id)
     .single()
+
+  if (profileError && profileError.code !== 'PGRST116') {
+    throw new Error('Failed to load profile. Please refresh.')
+  }
 
   return (
     <div className="max-w-md mx-auto p-4 pt-8">

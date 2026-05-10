@@ -28,7 +28,7 @@ export default function ProfileForm({ profile }: Props) {
       </div>
       <div className="space-y-1">
         <Label htmlFor="phone_number">Phone number</Label>
-        <Input id="phone_number" name="phone_number" placeholder="09XXXXXXXXX" defaultValue={profile?.phone_number ?? ''} required />
+        <Input id="phone_number" name="phone_number" type="tel" inputMode="numeric" placeholder="09XXXXXXXXX" defaultValue={profile?.phone_number ?? ''} required />
       </div>
       <div className="space-y-1">
         <Label htmlFor="gcash_name">GCash name</Label>
