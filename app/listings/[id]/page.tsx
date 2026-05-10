@@ -19,7 +19,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
       winner_id, auctioneer_id, starting_bid,
       listing_photos (storage_path, display_order),
       auctioneer:profiles!auctioneer_id (display_name),
-      winner:profiles!winner_id (display_name, phone_number, gcash_name)
+      winner:profiles!winner_id (display_name)
     `)
     .eq('id', id)
     .in('status', ['live', 'ended'])
@@ -42,10 +42,20 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
   const isAuctioneer = user?.id === listing.auctioneer_id
   const isWinner = user?.id === listing.winner_id
-  const showContactCard = listing.status === 'ended' && listing.winner_id !== null && (isAuctioneer || isWinner)
   const showChat = listing.status === 'ended' && listing.winner_id !== null && (isAuctioneer || isWinner)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let initialMessages: any[] = []
+  const showContactCard = showChat
+
+  let winnerContact: { phone_number: string | null; gcash_name: string | null } | null = null
+  if (isAuctioneer && listing.status === 'ended' && listing.winner_id) {
+    const { data: wc } = await db
+      .from('profiles')
+      .select('phone_number, gcash_name')
+      .eq('id', listing.winner_id)
+      .single()
+    winnerContact = wc
+  }
+
+  let initialMessages: { id: string; body: string; created_at: string; sender_id: string; profiles: { display_name: string | null } | null }[] = []
   let recipientId: string | null = null
 
   if (showChat && user) {
@@ -108,8 +118,8 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           </p>
           {isAuctioneer && (
             <div className="text-sm space-y-1">
-              <p><span className="font-medium">Winner&apos;s phone:</span> {listing.winner?.phone_number}</p>
-              <p><span className="font-medium">Winner&apos;s GCash name:</span> {listing.winner?.gcash_name}</p>
+              <p><span className="font-medium">Winner&apos;s phone:</span> {winnerContact?.phone_number}</p>
+              <p><span className="font-medium">Winner&apos;s GCash name:</span> {winnerContact?.gcash_name}</p>
             </div>
           )}
           {isWinner && (

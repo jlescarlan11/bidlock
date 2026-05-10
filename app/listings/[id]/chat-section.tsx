@@ -36,7 +36,11 @@ export default function ChatSection({ listingId, recipientId, userId, initialMes
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `listing_id=eq.${listingId}` },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
-          setMessages((prev) => [...prev, { ...payload.new, profiles: null }])
+          setMessages((prev) =>
+            prev.some((m) => m.id === payload.new.id)
+              ? prev
+              : [...prev, { ...payload.new, profiles: null }]
+          )
         }
       )
       .subscribe()
