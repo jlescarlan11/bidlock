@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { formatPHP } from '@/lib/utils/currency'
 import { minBidAmount } from '@/lib/validators/bid'
+import { createClient } from '@/lib/supabase/client'
 
 type Bid = {
   id: string
@@ -27,6 +28,29 @@ export default function BidSection({
 }: Props) {
   const [bids, setBids] = useState(initialBids)
   const [currentBid, setCurrentBid] = useState(initialBid)
+
+  useEffect(() => {
+    const supabase = createClient()
+
+    const channel = supabase
+      .channel(`bids:${listingId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'bids', filter: `listing_id=eq.${listingId}` },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (payload: any) => {
+          const newBid = payload.new
+          setCurrentBid(newBid.amount)
+          setBids((prev) => [
+            { id: newBid.id, amount: newBid.amount, created_at: newBid.created_at, profiles: null },
+            ...prev.slice(0, 9),
+          ])
+        }
+      )
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [listingId])
 
   const canBid = status === 'live' && userId && userId !== auctioneer_id
   const minBid = minBidAmount(currentBid)
