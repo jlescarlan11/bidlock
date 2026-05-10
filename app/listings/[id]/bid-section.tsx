@@ -63,16 +63,8 @@ export default function BidSection({
           minBid={minBid}
           currentBid={currentBid}
           onBidPlaced={(amount) => {
+            // Only update the current bid display; Realtime will add the bid to the list
             setCurrentBid(amount)
-            setBids((prev) => [
-              {
-                id: crypto.randomUUID(),
-                amount,
-                created_at: new Date().toISOString(),
-                profiles: null,
-              },
-              ...prev,
-            ])
           }}
         />
       )}
