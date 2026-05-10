@@ -14,19 +14,19 @@ export default async function HomePage() {
     .order('ends_at', { ascending: true })
 
   return (
-    <>
+    <main>
       <LandingHero />
 
       {/* Trust strip */}
       <div className="bg-violet-100 py-2.5 px-6 flex justify-center flex-wrap gap-x-6 gap-y-1.5">
         {[
-          '🔒 Secure GCash payments',
-          '🇵🇭 PH-verified sellers',
-          '🛡️ Buyer protection',
-          '⚡ New auctions daily',
-        ].map((item) => (
-          <span key={item} className="text-[11px] font-semibold text-violet-800">
-            {item}
+          { emoji: '🔒', label: 'Secure GCash payments' },
+          { emoji: '🇵🇭', label: 'PH-verified sellers' },
+          { emoji: '🛡️', label: 'Buyer protection' },
+          { emoji: '⚡', label: 'New auctions daily' },
+        ].map(({ emoji, label }) => (
+          <span key={label} className="text-[11px] font-semibold text-violet-800">
+            <span aria-hidden="true">{emoji}</span> {label}
           </span>
         ))}
       </div>
@@ -55,7 +55,7 @@ export default async function HomePage() {
             },
           ].map(({ icon, title, body }) => (
             <div key={title} className="bg-white rounded-2xl p-5 border border-violet-100">
-              <p className="text-2xl mb-2.5">{icon}</p>
+              <p className="text-2xl mb-2.5" aria-hidden="true">{icon}</p>
               <p className="text-sm font-extrabold text-stone-950 mb-1.5 leading-snug">{title}</p>
               <p className="text-xs text-gray-500 leading-relaxed">{body}</p>
             </div>
@@ -90,6 +90,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </>
+    </main>
   )
 }
