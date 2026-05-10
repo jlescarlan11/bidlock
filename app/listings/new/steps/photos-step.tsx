@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import Image from 'next/image'
+
+type PhotoEntry = { file: File; url: string }
 
 type Props = {
   onBack: () => void
@@ -10,9 +12,15 @@ type Props = {
 }
 
 export default function PhotosStep({ onBack, onNext }: Props) {
-  const [files, setFiles] = useState<File[]>([])
+  const [entries, setEntries] = useState<PhotoEntry[]>([])
   const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Revoke all blob URLs on unmount
+  useEffect(() => {
+    return () => entries.forEach((e) => URL.revokeObjectURL(e.url))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleFiles(selected: FileList | null) {
     if (!selected) return
@@ -21,14 +29,25 @@ export default function PhotosStep({ onBack, onNext }: Props) {
       (f) => f.size > 5 * 1024 * 1024 || !['image/jpeg', 'image/png', 'image/webp'].includes(f.type)
     )
     if (invalid) { setError('Each file must be jpg/png/webp and under 5 MB.'); return }
-    const combined = [...files, ...arr].slice(0, 5)
+
+    const newEntries = arr.map((f) => ({ file: f, url: URL.createObjectURL(f) }))
     setError('')
-    setFiles(combined)
+    setEntries((prev) => [...prev, ...newEntries].slice(0, 5))
+
+    // Reset input so the same file can be re-selected
+    if (inputRef.current) inputRef.current.value = ''
+  }
+
+  function removeFile(i: number) {
+    setEntries((prev) => {
+      URL.revokeObjectURL(prev[i].url)
+      return prev.filter((_, idx) => idx !== i)
+    })
   }
 
   function handleNext() {
-    if (files.length < 1) { setError('Upload at least 1 photo.'); return }
-    onNext(files)
+    if (entries.length < 1) { setError('Upload at least 1 photo.'); return }
+    onNext(entries.map((e) => e.file))
   }
 
   return (
@@ -50,15 +69,15 @@ export default function PhotosStep({ onBack, onNext }: Props) {
         />
       </div>
 
-      {files.length > 0 && (
+      {entries.length > 0 && (
         <div className="grid grid-cols-3 gap-2">
-          {files.map((f, i) => (
-            <div key={i} className="relative aspect-square rounded overflow-hidden bg-muted">
-              <Image src={URL.createObjectURL(f)} alt="" fill className="object-cover" />
+          {entries.map((entry, i) => (
+            <div key={entry.url} className="relative aspect-square rounded overflow-hidden bg-muted">
+              <Image src={entry.url} alt="" fill className="object-cover" />
               <button
                 type="button"
                 className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center"
-                onClick={() => setFiles((prev) => prev.filter((_, idx) => idx !== i))}
+                onClick={() => removeFile(i)}
               >
                 ×
               </button>
