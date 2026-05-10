@@ -28,7 +28,7 @@ export default function LandingHero() {
             href="/listings/new"
             className="block mt-2.5 text-xs text-violet-600 hover:underline"
           >
-            Got something to sell? List it here →
+            Got something to sell? List it here <span aria-hidden="true">→</span>
           </Link>
         </div>
 
