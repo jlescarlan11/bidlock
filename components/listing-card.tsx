@@ -14,6 +14,20 @@ type Props = {
   }
 }
 
+const CARD_GRADIENTS = [
+  'from-violet-100 to-purple-50',
+  'from-orange-100 to-amber-50',
+  'from-teal-100 to-emerald-50',
+  'from-rose-100 to-pink-50',
+  'from-blue-100 to-sky-50',
+  'from-yellow-100 to-lime-50',
+]
+
+function cardGradient(id: string) {
+  const hash = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return CARD_GRADIENTS[hash % CARD_GRADIENTS.length]
+}
+
 export default async function ListingCard({ listing }: Props) {
   const supabase = await createClient()
   const photo = listing.listing_photos[0]
@@ -22,20 +36,22 @@ export default async function ListingCard({ listing }: Props) {
     : null
 
   return (
-    <Link href={`/listings/${listing.id}`} className="block rounded-lg border overflow-hidden hover:shadow-md transition-shadow">
-      <div className="aspect-square bg-muted relative">
-        {photoUrl ? (
+    <Link
+      href={`/listings/${listing.id}`}
+      className="block bg-white rounded-2xl border border-violet-100 overflow-hidden hover:shadow-md hover:border-violet-200 transition-all"
+    >
+      <div className={`aspect-square bg-gradient-to-br ${cardGradient(listing.id)} relative`}>
+        {photoUrl && (
           <Image src={photoUrl} alt={listing.title} fill className="object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-muted-foreground text-sm">No photo</div>
         )}
       </div>
       <div className="p-3 space-y-1">
-        <p className="font-semibold text-sm line-clamp-2">{listing.title}</p>
-        <p className="text-sm">{formatPHP(listing.current_bid)}</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="font-bold text-sm text-stone-900 line-clamp-2">{listing.title}</p>
+        <p className="text-xs text-orange-600 font-semibold flex items-center gap-1">
+          <span aria-hidden="true">⏱</span>
           <Countdown endsAt={listing.ends_at} />
         </p>
+        <p className="text-base font-black text-violet-600">{formatPHP(listing.current_bid)}</p>
       </div>
     </Link>
   )

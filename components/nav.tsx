@@ -20,23 +20,25 @@ export default async function Nav() {
   }
 
   return (
-    <nav className="border-b px-4 py-3 flex items-center justify-between">
-      <Link href="/" className="font-bold text-lg">BidLock</Link>
-      <div className="flex items-center gap-3 text-sm">
+    <nav className="bg-white border-b border-violet-100 px-6 h-14 flex items-center justify-between sticky top-0 z-10">
+      <Link href="/" className="font-black text-xl text-violet-600 tracking-tight">BidLock</Link>
+      <div className="flex items-center gap-5 text-sm">
         {user ? (
           <>
-            <Link href="/listings/new" className="hover:underline">Sell</Link>
-            <Link href="/me/listings" className="hover:underline">My listings</Link>
-            <Link href="/me/bids" className="hover:underline">My bids</Link>
-            <Link href="/me/profile" className="hover:underline">Profile</Link>
-            {isAdmin && <Link href="/admin" className="hover:underline text-primary">Admin</Link>}
+            <Link href="/#live-auctions" className="text-gray-500 hover:text-gray-900 transition-colors">Auctions</Link>
+            <Link href="/listings/new" className="text-gray-500 hover:text-gray-900 transition-colors">Sell</Link>
+            <Link href="/me/listings" className="text-gray-500 hover:text-gray-900 transition-colors">My listings</Link>
+            <Link href="/me/bids" className="text-gray-500 hover:text-gray-900 transition-colors">My bids</Link>
+            <Link href="/me/profile" className="text-gray-500 hover:text-gray-900 transition-colors">Profile</Link>
+            {isAdmin && <Link href="/admin" className="text-violet-600 hover:text-violet-700 font-semibold transition-colors">Admin</Link>}
             <form action={signOut}>
-              <Button variant="ghost" size="sm" type="submit">Sign out</Button>
+              <Button variant="ghost" size="sm" type="submit" className="text-gray-500 hover:text-gray-900">Sign out</Button>
             </form>
           </>
         ) : (
           <>
-            <Link href="/auth/login" className="hover:underline">Sign in</Link>
+            <Link href="/#live-auctions" className="text-gray-500 hover:text-gray-900 transition-colors">Auctions</Link>
+            <Link href="/auth/login" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">Sign in</Link>
             <Button size="sm" nativeButton={false} render={<Link href="/auth/signup" />}>
               Sign up
             </Button>
