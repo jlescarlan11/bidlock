@@ -76,13 +76,13 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   let rateeName: string | null = null
 
   if (listing.status === 'ended' && listing.winner_id && user && (isAuctioneer || isWinner)) {
-    const { data: existing } = await db
+    const { data: existing, error: ratingFetchError } = await db
       .from('ratings')
       .select('verdict')
       .eq('listing_id', id)
       .eq('rater_id', user.id)
       .maybeSingle()
-    myRating = existing
+    if (!ratingFetchError) myRating = existing
 
     rateeId = isAuctioneer ? listing.winner_id : listing.auctioneer_id
     rateeName = isAuctioneer

@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { submitRating } from '@/lib/actions/ratings'
 import { Textarea } from '@/components/ui/textarea'
@@ -19,16 +19,17 @@ async function ratingAction(_prevState: any, formData: FormData) {
 
 export default function RatingForm({ listingId, rateeId, rateeName, existingRating }: Props) {
   const [state, action, pending] = useActionState(ratingAction, undefined)
+  const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
-    if (state?.success) toast.success('Rating submitted.')
+    if (state?.success) { toast.success('Rating submitted.'); setSubmitted(true) }
     if (state?.error) toast.error(state.error)
   }, [state])
 
-  if (existingRating) {
+  if (existingRating || submitted) {
     return (
       <div className="border rounded-lg p-4 text-sm">
-        <p>You rated <strong>{rateeName}</strong>: {existingRating.verdict === 'up' ? '👍' : '👎'}</p>
+        <p>You rated <strong>{rateeName}</strong>: {existingRating ? (existingRating.verdict === 'up' ? '👍' : '👎') : '✓ Rating submitted.'}</p>
       </div>
     )
   }
