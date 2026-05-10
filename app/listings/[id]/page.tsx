@@ -6,6 +6,7 @@ import Countdown from '@/components/countdown'
 import BidSection from './bid-section'
 import ChatSection from './chat-section'
 import RatingForm from './rating-form'
+import DisputeForm from './dispute-form'
 
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -169,6 +170,14 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           rateeId={rateeId}
           rateeName={rateeName}
           existingRating={myRating}
+        />
+      )}
+
+      {listing.status === 'ended' && user && (isAuctioneer || isWinner) && rateeId && rateeName && (
+        <DisputeForm
+          listingId={id}
+          reportedUserId={rateeId}
+          reportedUserName={rateeName}
         />
       )}
 

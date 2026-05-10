@@ -72,3 +72,57 @@ export async function rejectListing(listingId: string, reason: string) {
   revalidatePath('/admin/listings')
   return { success: true }
 }
+
+export async function resolveDispute(disputeId: string, verdict: 'upheld' | 'dismissed', adminNote: string) {
+  const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated.' }
+
+  const { data: profile } = await db
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+  if (!profile?.is_admin) return { error: 'Forbidden.' }
+
+  const { data: dispute } = await db
+    .from('disputes')
+    .select('reported_user_id')
+    .eq('id', disputeId)
+    .single()
+  if (!dispute) return { error: 'Dispute not found.' }
+
+  const { error: updateError } = await db
+    .from('disputes')
+    .update({ status: verdict, admin_note: adminNote, resolved_at: new Date().toISOString() })
+    .eq('id', disputeId)
+  if (updateError) return { error: updateError.message }
+
+  if (verdict === 'upheld') {
+    const { data: reportedUser } = await db
+      .from('profiles')
+      .select('strike_count')
+      .eq('id', dispute.reported_user_id)
+      .single()
+
+    const newStrikes = (reportedUser?.strike_count ?? 0) + 1
+    const banUpdate: Record<string, unknown> = { strike_count: newStrikes }
+
+    if (newStrikes >= 5) {
+      banUpdate.permabanned = true
+    } else if (newStrikes >= 3) {
+      banUpdate.banned_until = new Date(Date.now() + 7 * 86400 * 1000).toISOString()
+    }
+
+    await db
+      .from('profiles')
+      .update(banUpdate)
+      .eq('id', dispute.reported_user_id)
+  }
+
+  revalidatePath('/admin/disputes')
+  return { success: true }
+}
