@@ -7,13 +7,15 @@ export default async function ProfilePage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/auth/login')
 
-  const { data: profile, error: profileError } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any
+  const { data: profile, error: profileError } = await db
     .from('profiles')
     .select('display_name, phone_number, gcash_name')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
 
-  if (profileError && profileError.code !== 'PGRST116') {
+  if (profileError) {
     throw new Error('Failed to load profile. Please refresh.')
   }
 
