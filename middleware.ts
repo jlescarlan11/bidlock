@@ -28,27 +28,30 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname
 
+  // Helper: redirect while preserving any refreshed session cookies
+  function redirect(url: string) {
+    const res = NextResponse.redirect(new URL(url, request.url))
+    supabaseResponse.cookies.getAll().forEach((c) =>
+      res.cookies.set(c.name, c.value, { path: '/' })
+    )
+    return res
+  }
+
   // /admin/* — requires is_admin
   if (path.startsWith('/admin')) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
-    }
+    if (!user) return redirect('/auth/login')
     const { data: profile } = await supabase
       .from('profiles')
       .select('is_admin')
       .eq('id', user.id)
       .single()
-    if (!profile?.is_admin) {
-      return NextResponse.redirect(new URL('/', request.url))
-    }
+    if (!profile?.is_admin) return redirect('/')
   }
 
   // /me/* and /listings/new — requires auth + complete profile
-  const requiresAuth = path.startsWith('/me/') || path.startsWith('/listings/new')
+  const requiresAuth = path === '/me' || path.startsWith('/me/') || path.startsWith('/listings/new')
   if (requiresAuth) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/auth/login', request.url))
-    }
+    if (!user) return redirect('/auth/login')
     const { data: profile } = await supabase
       .from('profiles')
       .select('phone_number, gcash_name, permabanned, banned_until')
@@ -58,14 +61,15 @@ export async function middleware(request: NextRequest) {
     // Incomplete profile → redirect to profile page (but not if already going there)
     const profileIncomplete = !profile?.phone_number || !profile?.gcash_name
     if (profileIncomplete && !path.startsWith('/me/profile')) {
-      return NextResponse.redirect(new URL('/me/profile', request.url))
+      return redirect('/me/profile')
     }
 
-    // Banned users cannot list or bid
-    const isBanned = profile?.permabanned ||
+    // Banned users cannot list
+    const isBanned =
+      profile?.permabanned ||
       (profile?.banned_until && new Date(profile.banned_until) > new Date())
     if (isBanned && path.startsWith('/listings/new')) {
-      return NextResponse.redirect(new URL('/', request.url))
+      return redirect('/')
     }
   }
 
