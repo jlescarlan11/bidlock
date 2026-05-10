@@ -5,6 +5,7 @@ import { formatPHP } from '@/lib/utils/currency'
 import Countdown from '@/components/countdown'
 import BidSection from './bid-section'
 import ChatSection from './chat-section'
+import RatingForm from './rating-form'
 
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -66,6 +67,29 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
       .order('created_at', { ascending: true })
     initialMessages = msgs ?? []
     recipientId = isAuctioneer ? listing.winner_id : listing.auctioneer_id
+  }
+
+  // Fetch existing rating for this user
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let myRating: { verdict: string } | null = null
+  let rateeId: string | null = null
+  let rateeName: string | null = null
+
+  if (listing.status === 'ended' && listing.winner_id && user && (isAuctioneer || isWinner)) {
+    const { data: existing } = await db
+      .from('ratings')
+      .select('verdict')
+      .eq('listing_id', id)
+      .eq('rater_id', user.id)
+      .maybeSingle()
+    myRating = existing
+
+    rateeId = isAuctioneer ? listing.winner_id : listing.auctioneer_id
+    rateeName = isAuctioneer
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ? (listing.winner as any)?.display_name
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      : (listing.auctioneer as any)?.display_name
   }
 
   return (
@@ -136,6 +160,15 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
           recipientId={recipientId}
           userId={user.id}
           initialMessages={initialMessages}
+        />
+      )}
+
+      {listing.status === 'ended' && listing.winner_id && user && rateeId && rateeName && (isAuctioneer || isWinner) && (
+        <RatingForm
+          listingId={id}
+          rateeId={rateeId}
+          rateeName={rateeName}
+          existingRating={myRating}
         />
       )}
 
