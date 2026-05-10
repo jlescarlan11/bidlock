@@ -1,10 +1,22 @@
 import { NextResponse } from 'next/server'
+import { timingSafeEqual } from 'crypto'
 import { createClient } from '@supabase/supabase-js'
 import { env } from '@/lib/env'
 
+function safeCompare(a: string, b: string): boolean {
+  try {
+    const bufA = Buffer.from(a)
+    const bufB = Buffer.from(b)
+    if (bufA.length !== bufB.length) return false
+    return timingSafeEqual(bufA, bufB)
+  } catch {
+    return false
+  }
+}
+
 export async function GET(request: Request) {
-  const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${env.CRON_SECRET}`) {
+  const authHeader = request.headers.get('authorization') ?? ''
+  if (!safeCompare(authHeader, `Bearer ${env.CRON_SECRET}`)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
