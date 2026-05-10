@@ -28,8 +28,16 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
     .eq('id', 1)
     .single()
 
-  const qrUrl = settings?.gcash_qr_url
-    ? supabase.storage.from('listing-photos').getPublicUrl(settings.gcash_qr_url).data.publicUrl
+  if (!settings) {
+    return (
+      <div className="max-w-md mx-auto p-4 pt-8">
+        <p className="text-destructive font-semibold">Unable to load payment details. Please refresh and try again.</p>
+      </div>
+    )
+  }
+
+  const qrUrl = settings.gcash_qr_url
+    ? supabase.storage.from('listing-photos').getPublicUrl(settings.gcash_qr_url!).data.publicUrl
     : null
 
   return (
@@ -38,8 +46,8 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
       <div className="rounded-lg border p-4 space-y-2 text-sm">
         <p><span className="font-semibold">Listing:</span> {listing.title}</p>
         <p><span className="font-semibold">Amount:</span> ₱{listing.listing_fee}</p>
-        <p><span className="font-semibold">GCash number:</span> {settings?.gcash_number}</p>
-        <p><span className="font-semibold">GCash name:</span> {settings?.gcash_name}</p>
+        <p><span className="font-semibold">GCash number:</span> {settings.gcash_number}</p>
+        <p><span className="font-semibold">GCash name:</span> {settings.gcash_name}</p>
         <p className="text-muted-foreground">Use your BidLock username as the GCash message.</p>
       </div>
       {qrUrl && (
