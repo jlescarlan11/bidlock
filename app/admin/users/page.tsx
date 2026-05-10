@@ -68,7 +68,7 @@ export default async function AdminUsersPage({
                 {u.permabanned && <Badge variant="destructive">Permabanned</Badge>}
                 {!u.permabanned && isBanned && <Badge variant="destructive">Temp banned</Badge>}
                 {!isBanned && <Badge variant="outline">Active</Badge>}
-                {!isBanned && (
+                {!isBanned && u.id !== user.id && (
                   <>
                     <form action={async () => { 'use server'; await banUser(u.id, false) }}>
                       <Button size="sm" variant="outline" type="submit">7-day ban</Button>

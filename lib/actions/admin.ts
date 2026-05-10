@@ -145,6 +145,7 @@ export async function banUser(userId: string, permanent: boolean) {
     .eq('id', user.id)
     .single()
   if (!profile?.is_admin) return { error: 'Forbidden.' }
+  if (userId === user.id) return { error: 'Cannot ban yourself.' }
 
   const update = permanent
     ? { permabanned: true }
@@ -210,7 +211,7 @@ export async function updateSettings(formData: FormData) {
       .from('listing-photos')
       .upload('admin/gcash-qr.png', qrFile, { upsert: true })
     if (uploadError) return { error: uploadError.message }
-    updates.gcash_qr_url = 'admin/gcash-qr.png'
+    updates.gcash_qr_url = supabase.storage.from('listing-photos').getPublicUrl('admin/gcash-qr.png').data.publicUrl
   }
 
   const { error } = await db.from('settings').update(updates).eq('id', 1)
