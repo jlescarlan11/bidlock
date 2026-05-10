@@ -3,7 +3,7 @@ export function formatTimeRemaining(endsAt: string | Date): string {
   const now = Date.now()
   const diff = end - now
 
-  if (diff <= 0) return 'Ended'
+  if (isNaN(diff) || diff <= 0) return 'Ended'
 
   const totalSeconds = Math.floor(diff / 1000)
   const days = Math.floor(totalSeconds / 86400)
