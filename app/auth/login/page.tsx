@@ -25,7 +25,7 @@ export default function LoginPage() {
             </div>
             <div className="space-y-1">
               <Label htmlFor="password">Password</Label>
-              <Input id="password" name="password" type="password" required />
+              <Input id="password" name="password" type="password" required minLength={6} />
             </div>
             {state?.error && (
               <p className="text-sm text-destructive">{state.error}</p>

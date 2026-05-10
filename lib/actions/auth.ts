@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { loginSchema, signupSchema } from '@/lib/validators/auth'
+import { env } from '@/lib/env'
 
 export async function login(
   _prevState: { error: string } | undefined,
@@ -47,7 +48,7 @@ export async function signInWithGoogle(): Promise<void> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback` },
+    options: { redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback` },
   })
   if (error) throw new Error(error.message)
   if (data.url) redirect(data.url)
