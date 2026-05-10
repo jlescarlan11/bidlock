@@ -37,9 +37,9 @@ export default async function Nav() {
         ) : (
           <>
             <Link href="/auth/login" className="hover:underline">Sign in</Link>
-            <Link href="/auth/signup">
-              <Button size="sm">Sign up</Button>
-            </Link>
+            <Button size="sm" asChild>
+              <Link href="/auth/signup">Sign up</Link>
+            </Button>
           </>
         )}
       </div>
