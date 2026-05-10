@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { formatPHP } from '@/lib/utils/currency'
 import Countdown from '@/components/countdown'
 import BidSection from './bid-section'
+import ChatSection from './chat-section'
 
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -42,6 +43,20 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   const isAuctioneer = user?.id === listing.auctioneer_id
   const isWinner = user?.id === listing.winner_id
   const showContactCard = listing.status === 'ended' && listing.winner_id !== null && (isAuctioneer || isWinner)
+  const showChat = listing.status === 'ended' && listing.winner_id !== null && (isAuctioneer || isWinner)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let initialMessages: any[] = []
+  let recipientId: string | null = null
+
+  if (showChat && user) {
+    const { data: msgs } = await db
+      .from('messages')
+      .select('id, body, created_at, sender_id, profiles!sender_id(display_name)')
+      .eq('listing_id', id)
+      .order('created_at', { ascending: true })
+    initialMessages = msgs ?? []
+    recipientId = isAuctioneer ? listing.winner_id : listing.auctioneer_id
+  }
 
   return (
     <main className="max-w-2xl mx-auto p-4 pt-8 space-y-6">
@@ -103,6 +118,15 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
             </div>
           )}
         </div>
+      )}
+
+      {showChat && user && recipientId && (
+        <ChatSection
+          listingId={id}
+          recipientId={recipientId}
+          userId={user.id}
+          initialMessages={initialMessages}
+        />
       )}
 
       <BidSection
