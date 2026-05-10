@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import localFont from 'next/font/local'
 import { Toaster } from 'sonner'
+import Nav from '@/components/nav'
 import './globals.css'
 
 const inter = localFont({
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className}>
+        <Nav />
         {children}
         <Toaster position="top-right" richColors />
       </body>
