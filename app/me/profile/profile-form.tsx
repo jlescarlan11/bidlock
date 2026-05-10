@@ -1,7 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
-import { useEffect } from 'react'
+import { useActionState, useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { upsertProfile } from '@/lib/actions/profile'
 import { Button } from '@/components/ui/button'
@@ -14,6 +13,9 @@ type Props = {
 
 export default function ProfileForm({ profile }: Props) {
   const [state, action, pending] = useActionState(upsertProfile, undefined)
+  const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
+  const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number ?? '')
+  const [gcashName, setGcashName] = useState(profile?.gcash_name ?? '')
 
   useEffect(() => {
     if (state && 'success' in state) toast.success('Profile saved.')
@@ -24,15 +26,15 @@ export default function ProfileForm({ profile }: Props) {
     <form action={action} className="space-y-4">
       <div className="space-y-1">
         <Label htmlFor="display_name">Display name</Label>
-        <Input id="display_name" name="display_name" defaultValue={profile?.display_name ?? ''} required />
+        <Input id="display_name" name="display_name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
       </div>
       <div className="space-y-1">
         <Label htmlFor="phone_number">Phone number</Label>
-        <Input id="phone_number" name="phone_number" type="tel" inputMode="numeric" placeholder="09XXXXXXXXX" defaultValue={profile?.phone_number ?? ''} required />
+        <Input id="phone_number" name="phone_number" type="tel" inputMode="numeric" placeholder="09XXXXXXXXX" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} required />
       </div>
       <div className="space-y-1">
         <Label htmlFor="gcash_name">GCash name</Label>
-        <Input id="gcash_name" name="gcash_name" defaultValue={profile?.gcash_name ?? ''} required />
+        <Input id="gcash_name" name="gcash_name" value={gcashName} onChange={(e) => setGcashName(e.target.value)} required />
         <p className="text-xs text-muted-foreground">The name registered on your GCash account</p>
       </div>
       <Button type="submit" className="w-full" disabled={pending}>
