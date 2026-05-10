@@ -3,7 +3,7 @@ import Link from 'next/link'
 export default function LandingHero() {
   return (
     <section className="bg-violet-50 px-6 py-10">
-      <div className="max-w-2xl mx-auto flex gap-6 items-center">
+      <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-6 items-center">
         {/* Left — text + CTAs */}
         <div className="flex-1 min-w-0">
           <p className="text-[10px] font-bold tracking-[0.15em] text-violet-600 uppercase mb-2.5">
@@ -22,7 +22,7 @@ export default function LandingHero() {
             href="#live-auctions"
             className="inline-flex items-center gap-1.5 bg-violet-600 text-white px-6 py-3 rounded-full text-[15px] font-bold hover:bg-violet-700 transition-colors"
           >
-            🔨 Place a Bid
+            <span aria-hidden="true">🔨</span> Place a Bid
           </a>
           <Link
             href="/listings/new"
@@ -33,13 +33,13 @@ export default function LandingHero() {
         </div>
 
         {/* Right — non-interactive proof-of-life card */}
-        <div className="w-40 shrink-0 bg-white rounded-2xl border border-violet-100 p-3.5 shadow-sm">
+        <div className="w-40 shrink-0 bg-white rounded-2xl border border-violet-100 p-3.5 shadow-sm" aria-hidden="true">
           <p className="text-[11px] font-bold text-orange-600 mb-2 flex items-center gap-1">
             <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
             04:32 left
           </p>
           <div className="bg-violet-50 rounded-xl h-20 flex items-center justify-center text-4xl mb-2">
-            ⌚
+            <span aria-hidden="true">⌚</span>
           </div>
           <p className="text-xs font-bold text-stone-950 mb-1">Vintage Seiko Watch</p>
           <p className="text-[10px] text-gray-400 mb-1.5">14 bids so far</p>
