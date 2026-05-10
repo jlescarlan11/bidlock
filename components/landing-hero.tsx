@@ -1,51 +1,100 @@
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/server'
+import HeroCarousel, { type CarouselListing } from './hero-carousel'
 
-export default function LandingHero() {
+type HeroListing = {
+  id: string
+  title: string
+  current_bid: number
+  ends_at: string
+  listing_photos: { storage_path: string; display_order: number }[]
+}
+
+const CARD_GRADIENTS = [
+  'from-violet-100 to-purple-50',
+  'from-orange-100 to-amber-50',
+  'from-teal-100 to-emerald-50',
+  'from-rose-100 to-pink-50',
+]
+
+function cardGradient(id: string) {
+  const hash = id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0)
+  return CARD_GRADIENTS[hash % CARD_GRADIENTS.length]
+}
+
+export default async function LandingHero({ listings }: { listings: HeroListing[] }) {
+  const supabase = await createClient()
+
+  const carouselListings: CarouselListing[] = listings.slice(0, 10).map(listing => {
+    const photo = listing.listing_photos[0]
+    const photoUrl = photo
+      ? supabase.storage.from('listing-photos').getPublicUrl(photo.storage_path).data.publicUrl
+      : null
+    return {
+      id: listing.id,
+      title: listing.title,
+      current_bid: listing.current_bid,
+      ends_at: listing.ends_at,
+      photoUrl,
+      gradient: cardGradient(listing.id),
+    }
+  })
+
   return (
-    <section className="bg-violet-50 px-6 py-10">
-      <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-6 items-center">
-        {/* Left — text + CTAs */}
-        <div className="flex-1 min-w-0">
-          <p className="text-[10px] font-bold tracking-[0.15em] text-violet-600 uppercase mb-2.5">
+    <section className="bg-violet-50 min-h-[calc(100vh-3.5rem)] flex items-center">
+      <div className="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center py-16">
+
+        {/* Left — text + CTAs + stats */}
+        <div>
+          <p className="text-[11px] font-bold tracking-[0.18em] text-violet-500 uppercase mb-5">
             Live Auctions · PH
           </p>
-          <h1 className="text-4xl font-black leading-[1.1] mb-3 text-stone-950">
+          <h1 className="text-5xl lg:text-7xl font-black leading-[1.05] mb-6 text-stone-950">
             Going once.<br />
             Going twice.<br />
             <span className="text-violet-600">Yours.</span>
           </h1>
-          <p className="text-[15px] text-gray-500 mb-5 leading-relaxed">
-            Win real items at real prices.<br />
-            Pay instantly via GCash.
-          </p>
-          <a
-            href="#live-auctions"
-            className="inline-flex items-center gap-1.5 bg-violet-600 text-white px-6 py-3 rounded-full text-[15px] font-bold hover:bg-violet-700 transition-colors"
-          >
-            <span aria-hidden="true">🔨</span> Place a Bid
-          </a>
-          <Link
-            href="/listings/new"
-            className="block mt-2.5 text-xs text-violet-600 hover:underline"
-          >
-            Got something to sell? List it here <span aria-hidden="true">→</span>
-          </Link>
+          <div className="flex items-center gap-5 mb-10">
+            <a
+              href="#live-auctions"
+              className="inline-flex items-center gap-2 bg-violet-600 text-white px-7 py-3.5 rounded-full text-[15px] font-bold hover:bg-violet-700 active:scale-95 transition-all"
+            >
+              <span aria-hidden="true">🔨</span> Place a Bid
+            </a>
+            <Link
+              href="/listings/new"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-violet-600 hover:text-violet-800 transition-colors"
+            >
+              Sell an item <span aria-hidden="true">→</span>
+            </Link>
+          </div>
+          {/* Social proof strip */}
+          <div className="flex items-center gap-6">
+            <div>
+              <p className="text-2xl font-black text-stone-950 leading-none">2.3K+</p>
+              <p className="text-xs text-gray-400 mt-1">Items sold</p>
+            </div>
+            <div className="w-px h-10 bg-violet-200" />
+            <div>
+              <p className="text-2xl font-black text-stone-950 leading-none">847</p>
+              <p className="text-xs text-gray-400 mt-1">Active bids</p>
+            </div>
+            <div className="w-px h-10 bg-violet-200" />
+            <div>
+              <p className="text-2xl font-black text-stone-950 leading-none">₱4.2M+</p>
+              <p className="text-xs text-gray-400 mt-1">Total sold</p>
+            </div>
+          </div>
         </div>
 
-        {/* Right — non-interactive proof-of-life card */}
-        <div className="w-40 shrink-0 bg-white rounded-2xl border border-violet-100 p-3.5 shadow-sm" aria-hidden="true">
-          <p className="text-[11px] font-bold text-orange-600 mb-2 flex items-center gap-1">
-            <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-600 animate-pulse" />
-            04:32 left
+        {/* Right — carousel + tagline */}
+        <div>
+          <HeroCarousel listings={carouselListings} />
+          <p className="text-sm text-gray-500 text-center mt-4 leading-relaxed">
+            Win real items at real prices. Pay instantly via GCash. No deposits, no stress.
           </p>
-          <div className="bg-violet-50 rounded-xl h-20 flex items-center justify-center text-4xl mb-2">
-            <span aria-hidden="true">⌚</span>
-          </div>
-          <p className="text-xs font-bold text-stone-950 mb-1">Vintage Seiko Watch</p>
-          <p className="text-[10px] text-gray-400 mb-1.5">14 bids so far</p>
-          <p className="text-lg font-black text-orange-600">₱2,450</p>
-          <p className="text-[9px] text-gray-400 mt-0.5">Current bid</p>
         </div>
+
       </div>
     </section>
   )

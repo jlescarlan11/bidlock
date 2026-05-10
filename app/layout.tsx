@@ -1,13 +1,14 @@
 import type { Metadata } from 'next'
-import localFont from 'next/font/local'
+import { Plus_Jakarta_Sans } from 'next/font/google'
 import { Toaster } from 'sonner'
 import Nav from '@/components/nav'
+import NavWrapper from '@/components/nav-wrapper'
 import './globals.css'
 
-const inter = localFont({
-  src: '../node_modules/next/dist/next-devtools/server/font/geist-latin.woff2',
+const font = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700', '800'],
   display: 'swap',
-  fallback: ['system-ui', 'sans-serif'],
 })
 
 export const metadata: Metadata = {
@@ -18,8 +19,8 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={inter.className}>
-        <Nav />
+      <body className={font.className}>
+        <NavWrapper><Nav /></NavWrapper>
         {children}
         <Toaster position="top-right" richColors />
       </body>

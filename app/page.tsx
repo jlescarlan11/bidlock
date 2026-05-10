@@ -15,28 +15,33 @@ export default async function HomePage() {
 
   return (
     <main>
-      <LandingHero />
+      <LandingHero listings={listings ?? []} />
 
       {/* Trust strip */}
-      <div className="bg-violet-100 py-2.5 px-6 flex justify-center flex-wrap gap-x-6 gap-y-1.5">
+      <div className="bg-violet-900 py-4">
+        <div className="max-w-7xl mx-auto px-6 flex justify-center flex-wrap gap-x-8 gap-y-2">
         {[
           { emoji: '🔒', label: 'Secure GCash payments' },
           { emoji: '🇵🇭', label: 'PH-verified sellers' },
           { emoji: '🛡️', label: 'Buyer protection' },
           { emoji: '⚡', label: 'New auctions daily' },
         ].map(({ emoji, label }) => (
-          <span key={label} className="text-[11px] font-semibold text-violet-800">
+          <span key={label} className="text-[12px] font-semibold text-violet-200 flex items-center gap-1.5">
             <span aria-hidden="true">{emoji}</span> {label}
           </span>
         ))}
+        </div>
       </div>
 
       {/* Reassurance — "Before you bid" */}
-      <section className="max-w-2xl mx-auto px-6 py-10">
-        <p className="text-[13px] font-bold tracking-[0.12em] text-gray-400 uppercase text-center mb-5">
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <p className="text-[11px] font-bold tracking-[0.18em] text-violet-500 uppercase text-center mb-3">
           Before you bid
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <h2 className="text-3xl font-black text-stone-950 text-center mb-10">
+          Simple. Transparent. Fair.
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
           {[
             {
               icon: '🎯',
@@ -54,28 +59,34 @@ export default async function HomePage() {
               body: 'Quick GCash transfer, seller ships, item arrives. Simple as that.',
             },
           ].map(({ icon, title, body }) => (
-            <div key={title} className="bg-white rounded-2xl p-5 border border-violet-100">
-              <p className="text-2xl mb-2.5" aria-hidden="true">{icon}</p>
-              <p className="text-sm font-extrabold text-stone-950 mb-1.5 leading-snug">{title}</p>
-              <p className="text-xs text-gray-500 leading-relaxed">{body}</p>
+            <div key={title} className="bg-violet-50 rounded-2xl p-6 border border-violet-100 hover:border-violet-300 transition-colors">
+              <p className="text-3xl mb-4" aria-hidden="true">{icon}</p>
+              <p className="text-base font-extrabold text-stone-950 mb-2 leading-snug">{title}</p>
+              <p className="text-sm text-gray-500 leading-relaxed">{body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Live auctions grid — anchor target for hero CTA */}
-      <section id="live-auctions" className="max-w-2xl mx-auto px-6 pb-12">
-        <div className="border-t border-violet-100 pt-8">
-          <h2 className="text-xl font-extrabold mb-4 flex items-center gap-2 text-stone-950">
-            Live Auctions
-            <span className="bg-orange-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-full tracking-wide">
-              LIVE
-            </span>
-          </h2>
+      <section id="live-auctions" className="max-w-7xl mx-auto px-6 pb-16">
+        <div className="border-t border-violet-100 pt-10">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-black text-stone-950 flex items-center gap-3">
+              Live Auctions
+              <span className="bg-orange-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wide">
+                LIVE
+              </span>
+            </h2>
+          </div>
           {!listings?.length && (
-            <p className="text-muted-foreground">No live auctions right now. Check back soon.</p>
+            <div className="text-center py-16">
+              <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
+              <p className="font-bold text-stone-950 mb-1">No live auctions right now</p>
+              <p className="text-sm text-gray-400">Check back soon — new items drop daily.</p>
+            </div>
           )}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {listings?.map((listing: any) => (
               <ListingCard
                 key={listing.id}

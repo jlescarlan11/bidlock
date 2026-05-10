@@ -20,7 +20,7 @@ export default async function Nav() {
   }
 
   return (
-    <nav className="bg-white border-b border-violet-100 px-6 h-14 flex items-center justify-between sticky top-0 z-10">
+    <nav className="px-6 h-14 flex items-center justify-between max-w-7xl mx-auto">
       <Link href="/" className="font-black text-xl text-violet-600 tracking-tight">BidLock</Link>
       <div className="flex items-center gap-5 text-sm">
         {user ? (
