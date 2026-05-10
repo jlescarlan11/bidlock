@@ -2,11 +2,22 @@ import { createClient } from '@/lib/supabase/server'
 import { resolveDispute } from '@/lib/actions/admin'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { redirect } from 'next/navigation'
 
 export default async function AdminDisputesPage() {
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/auth/login')
+
+  const { data: profile } = await db
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single()
+  if (!profile?.is_admin) redirect('/')
 
   const { data: disputes } = await db
     .from('disputes')

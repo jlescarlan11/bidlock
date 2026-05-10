@@ -99,6 +99,7 @@ export async function resolveDispute(disputeId: string, verdict: 'upheld' | 'dis
     .from('disputes')
     .update({ status: verdict, admin_note: adminNote, resolved_at: new Date().toISOString() })
     .eq('id', disputeId)
+    .eq('status', 'open')
   if (updateError) return { error: updateError.message }
 
   if (verdict === 'upheld') {
@@ -108,6 +109,10 @@ export async function resolveDispute(disputeId: string, verdict: 'upheld' | 'dis
       .eq('id', dispute.reported_user_id)
       .single()
 
+    if (!reportedUser) return { error: 'Reported user profile not found.' }
+
+    // NOTE: strike_count increment is not atomic — concurrent admin resolutions for the
+    // same user could undercount. Mitigate by adding a unique constraint or RPC in a future migration.
     const newStrikes = (reportedUser?.strike_count ?? 0) + 1
     const banUpdate: Record<string, unknown> = { strike_count: newStrikes }
 
