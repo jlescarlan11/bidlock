@@ -42,14 +42,15 @@ function ReviewField({
 }
 
 export default function ReviewStep({ data, onEditStep }: Props) {
-  const [thumbUrls, setThumbUrls] = useState<string[]>([])
+  const [thumbUrls] = useState<string[]>(() =>
+    data.photos.map((f) => URL.createObjectURL(f))
+  )
   const [pending, startTransition] = useTransition()
 
   useEffect(() => {
-    const urls = data.photos.map((f) => URL.createObjectURL(f))
-    setThumbUrls(urls)
-    return () => urls.forEach((u) => URL.revokeObjectURL(u))
-  }, [data.photos])
+    return () => thumbUrls.forEach((u) => URL.revokeObjectURL(u))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   function handleSubmit() {
     startTransition(async () => {
