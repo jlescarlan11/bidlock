@@ -3,7 +3,7 @@
 @import "shadcn/tailwind.css";
 
 :root {
-  --background:           var(--color-white);
+  --background:           var(--color-violet-50);
   --foreground:           var(--color-stone-950);
   --primary:              var(--color-violet-600);
   --primary-foreground:   var(--color-white);
