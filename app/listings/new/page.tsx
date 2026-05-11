@@ -25,6 +25,7 @@ export default function NewListingPage() {
     starting_bid: 0,
     duration_days: 3,
   })
+  const [previewPhotoUrl, setPreviewPhotoUrl] = useState<string | undefined>(undefined)
 
   const stepIndicator = useMemo(() => (
     <div className="flex gap-2 mb-6">
@@ -48,29 +49,40 @@ export default function NewListingPage() {
 
   return (
     <div className="max-w-[1100px] mx-auto px-6 pt-8">
-      {step === 0 ? (
+      {step < 2 ? (
         <div className="max-w-[640px] mx-auto lg:max-w-none lg:grid lg:grid-cols-[480px_400px] lg:gap-12 lg:justify-center">
-          {/* Left column: step indicator + fee callout + form */}
+          {/* Left column */}
           <div>
             {stepIndicator}
-            <FeeDisclosureCallout>
-              Listing fees are non-refundable once your auction goes live.
-            </FeeDisclosureCallout>
-            <DetailsStep
-              defaultValues={data}
-              onNext={(values) => { setData((d) => ({ ...d, ...values })); setStep(1) }}
-              onPreviewChange={setPreviewDraft}
-            />
+            {step === 0 && (
+              <>
+                <FeeDisclosureCallout>
+                  Listing fees are non-refundable once your auction goes live.
+                </FeeDisclosureCallout>
+                <DetailsStep
+                  defaultValues={data}
+                  onNext={(values) => { setData((d) => ({ ...d, ...values })); setStep(1) }}
+                  onPreviewChange={setPreviewDraft}
+                />
+              </>
+            )}
+            {step === 1 && (
+              <PhotosStep
+                onBack={() => { setPreviewPhotoUrl(undefined); setStep(0) }}
+                onNext={(photos) => { setData((d) => ({ ...d, photos })); setStep(2) }}
+                onPhotosChange={(urls) => setPreviewPhotoUrl(urls[0])}
+              />
+            )}
           </div>
 
-          {/* Right column: live preview */}
+          {/* Right column — live preview */}
           <div className="mt-8 lg:mt-0">
             <div className="lg:sticky lg:top-24">
               <div className="flex items-center gap-2 mb-3">
                 <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" aria-hidden="true" />
                 <p className="text-xs text-muted-foreground font-medium">Live preview</p>
               </div>
-              <ListingPreviewCard {...previewDraft} />
+              <ListingPreviewCard {...previewDraft} photoUrl={previewPhotoUrl} />
               <p className="text-xs text-muted-foreground mt-3 text-center">
                 How your listing appears in the feed
               </p>
@@ -80,18 +92,10 @@ export default function NewListingPage() {
       ) : (
         <div className="max-w-lg mx-auto">
           {stepIndicator}
-          {step === 1 && (
-            <PhotosStep
-              onBack={() => setStep(0)}
-              onNext={(photos) => { setData((d) => ({ ...d, photos })); setStep(2) }}
-            />
-          )}
-          {step === 2 && (
-            <ReviewStep
-              data={data as WizardData}
-              onBack={() => setStep(1)}
-            />
-          )}
+          <ReviewStep
+            data={data as WizardData}
+            onBack={() => setStep(1)}
+          />
         </div>
       )}
     </div>
