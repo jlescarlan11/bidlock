@@ -162,7 +162,7 @@ This join must be added wherever listings are fetched for grid display. Confirme
 
 ## Implementation Notes
 
-- **Height reservation for activity line:** The activity line `<p>` must always render, even when empty. Use `h-4` — an explicit fixed height, not `min-h`. This prevents grid cards from shifting height between states regardless of what text class is inside.
+- **Height reservation for activity line:** The activity line `<p>` must always render unconditionally — do not wrap it in `{activityText && <p>...</p>}`. Only the *text inside* is conditional. Use `h-4` — an explicit fixed height, not `min-h`. This prevents grid cards from shifting height between states regardless of what text class lands inside.
 - **Pulse animation:** Tailwind's `animate-pulse` swings opacity `1 → 0.5 → 1` on a 2s cycle. The spec calls for a deeper swing (`1 → 0.3`) for subtlety. This requires a custom keyframe — define it in the project CSS file (`app/globals.css`):
   ```css
   @keyframes bid-pulse {
@@ -174,7 +174,7 @@ This join must be added wherever listings are fetched for grid display. Confirme
 - **`99+` cap:** Prevents 3-digit bid counts (e.g. `127 bids`) from widening the amber pill beyond its designed 2-digit baseline (`14 bids`). The cap renders narrower than the baseline — that's intentional and fine.
 - **Amber pill contrast on warm image placeholders:** Card gradient placeholders for warm state are `from-amber-100 to-amber-200`. The pill `bg-amber-600` at 88% opacity should be dark enough to read — verify visually and adjust to `bg-amber-700` if needed.
 - **`CURRENT BID` label:** Remove entirely. The peso sign + `font-black` price communicates the same thing without the noise.
-- **State transition smoothness:** When a card crosses a state boundary (e.g. cold → warm as a 24h threshold passes), border and background changes will snap unless a CSS transition is applied to the card shell. Add `transition-colors duration-500` to the card container. This is cheap insurance against visual jitter in grids with live countdowns.
+- **State transition smoothness:** When a card crosses a state boundary, apply `transition-colors duration-300` to both the card shell and the timer pill. `duration-300` is smooth without being noticeable — the goal is invisible smoothing, not announcing the shift. The timer pill needs its own `transition-colors` because it can snap amber → red independently of the card shell.
 
 ---
 
