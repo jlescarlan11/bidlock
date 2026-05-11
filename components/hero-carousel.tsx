@@ -93,7 +93,7 @@ export default function HeroCarousel({ listings }: { listings: CarouselListing[]
           return (
             <div
               key={`${id}-${i}`}
-              className={`px-2 shrink-0 ${isCenter ? 'z-20' : 'z-10'}`}
+              className={`relative px-2 shrink-0 ${isCenter ? 'z-20' : 'z-10'}`}
               style={{
                 width: `${100 / extLen}%`,
                 transform: `scale(${scale})`,
