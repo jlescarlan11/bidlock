@@ -105,7 +105,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   const winnerName: string | null = (listing.winner as any)?.display_name ?? null
 
   return (
-    <main className="max-w-6xl mx-auto px-4 py-8 pb-32 md:pb-8">
+    <main className="max-w-7xl mx-auto px-6 py-8 pb-32 md:pb-8">
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 items-start">
 
         {/* ── Left column ── */}
