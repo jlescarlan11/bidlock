@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useTransition } from 'react'
+import { useState, useLayoutEffect, useTransition } from 'react'
 import { Pencil, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { createListing } from '@/lib/actions/listings'
@@ -42,13 +42,13 @@ function ReviewField({
 }
 
 export default function ReviewStep({ data, onEditStep }: Props) {
-  const [thumbUrls] = useState<string[]>(() =>
-    data.photos.map((f) => URL.createObjectURL(f))
-  )
+  const [thumbUrls, setThumbUrls] = useState<string[]>([])
   const [pending, startTransition] = useTransition()
 
-  useEffect(() => {
-    return () => thumbUrls.forEach((u) => URL.revokeObjectURL(u))
+  useLayoutEffect(() => {
+    const urls = data.photos.map((f) => URL.createObjectURL(f))
+    setThumbUrls(urls)
+    return () => urls.forEach((u) => URL.revokeObjectURL(u))
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

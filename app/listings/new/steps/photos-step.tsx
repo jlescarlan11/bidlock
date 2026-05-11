@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useLayoutEffect } from 'react'
 import { ImagePlus } from 'lucide-react'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
@@ -60,17 +60,27 @@ function SortableThumbnail({
 }
 
 export default function PhotosStep({ onBack, onNext, onPhotosChange, initialPhotos }: Props) {
-  const [entries, setEntries] = useState<PhotoEntry[]>(() =>
-    (initialPhotos ?? []).map((f) => ({ file: f, url: URL.createObjectURL(f) }))
-  )
+  const [entries, setEntries] = useState<PhotoEntry[]>([])
   const [error, setError] = useState('')
   const [isDragOver, setIsDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Revoke all blob URLs on unmount
-  useEffect(() => {
-    return () => entries.forEach((e) => URL.revokeObjectURL(e.url))
+  // Keep a ref synced to the latest entries so the cleanup closure always sees current state
+  const entriesRef = useRef<PhotoEntry[]>([])
+  entriesRef.current = entries
+
+  // Restore initialPhotos on mount (useLayoutEffect = StrictMode-safe: recreates URLs on remount)
+  useLayoutEffect(() => {
+    if (!initialPhotos?.length) return
+    const initial = initialPhotos.map((f) => ({ file: f, url: URL.createObjectURL(f) }))
+    setEntries(initial)
+    return () => initial.forEach((e) => URL.revokeObjectURL(e.url))
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Revoke all live entries on real unmount (ref always points to latest, not captured closure)
+  useEffect(() => {
+    return () => entriesRef.current.forEach((e) => URL.revokeObjectURL(e.url))
   }, [])
 
   // Sync blob URLs to parent for live preview
