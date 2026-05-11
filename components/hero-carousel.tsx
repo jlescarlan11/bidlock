@@ -58,8 +58,8 @@ export default function HeroCarousel({ listings }: { listings: CarouselListing[]
     return (
       <div className="hidden lg:flex flex-col items-center justify-center py-20 text-center">
         <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
-        <p className="font-semibold text-stone-950 mb-1">No live auctions yet</p>
-        <p className="text-sm text-gray-400">Be the first to list something!</p>
+        <p className="font-semibold text-foreground mb-1">No live auctions yet</p>
+        <p className="text-sm text-muted-foreground">Be the first to list something!</p>
       </div>
     )
   }
