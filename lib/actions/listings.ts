@@ -117,6 +117,8 @@ export async function submitPaymentProof(
   if (!reference) return { error: 'GCash reference number is required.' }
   if (!/^\d{13}$/.test(reference)) return { error: 'Enter a valid 13-digit GCash reference number.' }
 
+  const paymentMessage = ((formData.get('payment_message') as string) ?? '').trim()
+
   const proofFile = formData.get('proof') as File
   if (!proofFile || proofFile.size === 0) return { error: 'Payment proof screenshot is required.' }
   if (proofFile.size > MAX_PHOTO_SIZE) return { error: 'File must be under 5 MB.' }
@@ -145,6 +147,7 @@ export async function submitPaymentProof(
       status: 'awaiting_review',
       payment_proof_url: storagePath,
       payment_reference: reference,
+      payment_message: paymentMessage,
     })
     .eq('id', listingId)
   if (updateError) return { error: updateError.message }
