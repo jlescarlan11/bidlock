@@ -21,24 +21,24 @@ export default async function Nav() {
 
   return (
     <nav className="px-6 h-14 flex items-center justify-between max-w-7xl mx-auto">
-      <Link href="/" className="font-black text-xl text-violet-600 tracking-tight">BidLock</Link>
+      <Link href="/" className="font-black text-xl text-primary tracking-tight">BidLock</Link>
       <div className="flex items-center gap-5 text-sm">
         {user ? (
           <>
-            <Link href="/#live-auctions" className="text-gray-500 hover:text-gray-900 transition-colors">Auctions</Link>
-            <Link href="/listings/new" className="text-gray-500 hover:text-gray-900 transition-colors">Sell</Link>
-            <Link href="/me/listings" className="text-gray-500 hover:text-gray-900 transition-colors">My listings</Link>
-            <Link href="/me/bids" className="text-gray-500 hover:text-gray-900 transition-colors">My bids</Link>
-            <Link href="/me/profile" className="text-gray-500 hover:text-gray-900 transition-colors">Profile</Link>
-            {isAdmin && <Link href="/admin" className="text-violet-600 hover:text-violet-700 font-semibold transition-colors">Admin</Link>}
+            <Link href="/#live-auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
+            <Link href="/listings/new" className="text-muted-foreground hover:text-foreground transition-colors">Sell</Link>
+            <Link href="/me/listings" className="text-muted-foreground hover:text-foreground transition-colors">My listings</Link>
+            <Link href="/me/bids" className="text-muted-foreground hover:text-foreground transition-colors">My bids</Link>
+            <Link href="/me/profile" className="text-muted-foreground hover:text-foreground transition-colors">Profile</Link>
+            {isAdmin && <Link href="/admin" className="text-primary hover:text-primary/80 font-semibold transition-colors">Admin</Link>}
             <form action={signOut}>
-              <Button variant="ghost" size="sm" type="submit" className="text-gray-500 hover:text-gray-900">Sign out</Button>
+              <Button variant="ghost" size="sm" type="submit" className="text-muted-foreground hover:text-foreground">Sign out</Button>
             </form>
           </>
         ) : (
           <>
-            <Link href="/#live-auctions" className="text-gray-500 hover:text-gray-900 transition-colors">Auctions</Link>
-            <Link href="/auth/login" className="text-gray-600 hover:text-gray-900 font-medium transition-colors">Sign in</Link>
+            <Link href="/#live-auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
+            <Link href="/auth/login" className="text-muted-foreground hover:text-foreground font-medium transition-colors">Sign in</Link>
             <Button size="sm" nativeButton={false} render={<Link href="/auth/signup" />}>
               Sign up
             </Button>
