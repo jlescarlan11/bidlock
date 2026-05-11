@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import DetailsStep, { type PreviewDraft } from './steps/details-step'
 import PhotosStep from './steps/photos-step'
 import ReviewStep from './steps/review-step'
@@ -26,7 +26,7 @@ export default function NewListingPage() {
     duration_days: 3,
   })
 
-  const stepIndicator = (
+  const stepIndicator = useMemo(() => (
     <div className="flex gap-2 mb-6">
       {STEPS.map((label, i) => (
         <div key={label} className="flex items-center gap-2 flex-1">
@@ -44,7 +44,7 @@ export default function NewListingPage() {
         </div>
       ))}
     </div>
-  )
+  ), [step])
 
   return (
     <div className="max-w-[1100px] mx-auto px-6 pt-8">
