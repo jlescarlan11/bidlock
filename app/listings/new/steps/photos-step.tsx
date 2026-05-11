@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
 import { ImagePlus } from 'lucide-react'
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core'
 import type { DragEndEvent } from '@dnd-kit/core'
@@ -39,7 +38,8 @@ function SortableThumbnail({
       {...attributes}
       {...listeners}
     >
-      <Image src={entry.url} alt="" fill className="object-cover pointer-events-none" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={entry.url} alt="" className="absolute inset-0 w-full h-full object-cover pointer-events-none" />
       {index === 0 && (
         <span className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
           Cover
