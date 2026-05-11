@@ -16,6 +16,8 @@ The current `ListingCard` component (`components/listing-card.tsx`) has four str
 
 Approach B: Structured Panel — same image-on-top layout with the info section restructured and a three-state progressive heat treatment system.
 
+**Note on color choices:** The heat treatment colors (`amber-200`, `amber-50/30`, `amber-300`, `red-600`, etc.) are intentionally raw Tailwind classes, not design tokens. They are semantic to *auction state*, not to the brand palette. Do not tokenize them. Applying the token migration to these values would be incorrect — the amber here means "ending soon," not "SerBee brand amber."
+
 ---
 
 ## Visual Structure
@@ -40,7 +42,7 @@ Approach B: Structured Panel — same image-on-top layout with the info section 
 
 ### Cold (default, ~95% of cards)
 
-Triggers: any card.
+Triggers: `ends_at >= 24h`. Includes cards with any number of bids — bid activity is expressed through the bid pill, not card-level treatment.
 
 | Element | Treatment |
 |---|---|
@@ -49,23 +51,23 @@ Triggers: any card.
 | Info border-top | none |
 | Timer pill | `bg-black/60` dark gray |
 | Timer dot | static orange (`bg-orange-400`) |
-| Bid pill | hidden (no bids) |
-| Activity line | "No bids yet" in `text-gray-400` (muted — must not pull eye) |
+| Bid pill | amber `bg-amber-100 text-amber-800` when `bid_count > 0`; hidden when `bid_count === 0` |
+| Activity line | "No bids yet" in `text-gray-400` when `bid_count === 0`. Hidden (slot reserved) when `bid_count > 0` and last activity is old. |
 
 ### Warm (heat treatment level 1)
 
-Triggers: `bid_count >= 10` OR `ends_at < 24h` (either condition is sufficient).
+Triggers: `ends_at < 24h` only. **`bid_count >= 10` alone does not trigger card-level treatment.** Popularity (high bid count) is expressed through the bid pill, not the card background. Reserving the card tint for time-urgency keeps the heat treatment signal honest — a card with 12 bids and 5 days left is popular, not urgent.
 
 | Element | Treatment |
 |---|---|
 | Card border | `border-amber-200` |
 | Card background | `bg-amber-50/30` (barely visible — if you can see it on a single card, it's too much) |
 | Info border-top | `border-t-2 border-amber-300` |
-| Timer pill | amber `bg-amber-600/88` when `ends_at < 24h`, otherwise unchanged |
-| Bid pill | amber `bg-amber-100 text-amber-800`, capped at "99+" for bid_count > 99 |
+| Timer pill | amber `bg-amber-600/88` |
+| Bid pill | amber `bg-amber-100 text-amber-800` (same as cold — bid pill is always amber when bids exist) |
 | Activity line | empty slot (reserved height — prevents grid height jitter) |
 
-**Contrast note:** The warm card uses an amber gradient image placeholder. Verify that the amber timer pill (`bg-amber-600`) has sufficient contrast against the lightest part of the image at the top edge. The pill has `backdrop-blur` which helps, but this must be checked with a real bright image.
+**Contrast note:** Verify that the amber timer pill (`bg-amber-600`) has sufficient contrast against bright images at the top edge. The pill has `backdrop-blur` which helps, but check with a real white/light image and adjust to `bg-amber-700` if needed.
 
 ### Hot (heat treatment level 2)
 
@@ -88,13 +90,17 @@ Inherits all warm treatment, plus:
 ```ts
 const hoursLeft = (new Date(ends_at).getTime() - Date.now()) / 36e5
 
+// Card-level heat treatment is time-only. Popularity (bid_count) does not
+// trigger card tint — it's expressed through the bid pill only.
 const isHot  = hoursLeft < 1
-const isWarm = !isHot && (hoursLeft < 24 || bid_count >= 10)
+const isWarm = !isHot && hoursLeft < 24
 
 const timerVariant = isHot ? 'red' : hoursLeft < 24 ? 'amber' : 'gray'
 
-const showBidPill   = bid_count > 0
-const bidPillLabel  = bid_count > 99 ? '99+' : `${bid_count} bids`
+const showBidPill  = bid_count > 0
+// Cap at 99+ to prevent 3-digit counts (e.g. "127 bids") from widening the
+// pill beyond its designed 2-digit baseline ("14 bids").
+const bidPillLabel = bid_count > 99 ? '99+' : `${bid_count} bids`
 
 const minutesSinceLastBid = last_bid_at
   ? (Date.now() - new Date(last_bid_at).getTime()) / 60000
@@ -142,17 +148,33 @@ LEFT JOIN bids b ON b.listing_id = l.id
 GROUP BY l.id
 ```
 
-This join must be added wherever listings are fetched for grid display (currently `app/page.tsx` and any other listing feed pages).
+This join must be added wherever listings are fetched for grid display. Confirmed call sites (grep of codebase — all `ListingCard` renders):
+
+| File | Notes |
+|---|---|
+| `app/page.tsx` | Only current call site |
+
+`app/me/bids/page.tsx`, `app/me/listings/page.tsx`, and `app/admin/listings/page.tsx` render their own listing tables and do not use `ListingCard` — no changes needed there.
+
+**Known scale concern:** `MAX(b.created_at)` via `LEFT JOIN` + `GROUP BY` is cheap at current data volume but becomes a full aggregation scan as bids accumulate. Future mitigation: add `last_bid_at` and `bid_count` as denormalized columns on the `listings` table, updated by a trigger on bid insert. Not required now — note for future performance work.
 
 ---
 
 ## Implementation Notes
 
-- **Height reservation for activity line:** The activity line `<p>` must always render, even when empty. Use `min-h-[1rem]` or equivalent — do not conditionally omit the element. This prevents grid cards from jitching height between states.
-- **Pulse timing:** Use Tailwind's `animate-pulse` but override duration via `[animation-duration:2s]` — the default 2s is fine but confirm it doesn't feel urgent on a crowded grid. Pulse is reserved for `isHot` only.
-- **`99+` cap:** `bid_count > 99 ? '99+' : \`${bid_count} bids\`` prevents the amber pill from widening beyond its designed width and pushing the price text.
+- **Height reservation for activity line:** The activity line `<p>` must always render, even when empty. Use `h-4` — an explicit fixed height, not `min-h`. This prevents grid cards from shifting height between states regardless of what text class is inside.
+- **Pulse animation:** Tailwind's `animate-pulse` swings opacity `1 → 0.5 → 1` on a 2s cycle. The spec calls for a deeper swing (`1 → 0.3`) for subtlety. This requires a custom keyframe — define it in the project CSS file (`app/globals.css`):
+  ```css
+  @keyframes bid-pulse {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0.3; }
+  }
+  ```
+  Then apply via `[animation:bid-pulse_2s_ease-in-out_infinite]`. Pulse is reserved for `isHot` timer dot only.
+- **`99+` cap:** Prevents 3-digit bid counts (e.g. `127 bids`) from widening the amber pill beyond its designed 2-digit baseline (`14 bids`). The cap renders narrower than the baseline — that's intentional and fine.
 - **Amber pill contrast on warm image placeholders:** Card gradient placeholders for warm state are `from-amber-100 to-amber-200`. The pill `bg-amber-600` at 88% opacity should be dark enough to read — verify visually and adjust to `bg-amber-700` if needed.
 - **`CURRENT BID` label:** Remove entirely. The peso sign + `font-black` price communicates the same thing without the noise.
+- **State transition smoothness:** When a card crosses a state boundary (e.g. cold → warm as a 24h threshold passes), border and background changes will snap unless a CSS transition is applied to the card shell. Add `transition-colors duration-500` to the card container. This is cheap insurance against visual jitter in grids with live countdowns.
 
 ---
 
@@ -161,8 +183,8 @@ This join must be added wherever listings are fetched for grid display (currentl
 | File | Change |
 |---|---|
 | `components/listing-card.tsx` | Full restructure per spec |
+| `app/globals.css` | Add `bid-pulse` custom keyframe |
 | `app/page.tsx` | Add `bid_count`, `last_bid_at` to listings query |
-| Any other listing feed pages | Same query addition |
 
 ---
 
