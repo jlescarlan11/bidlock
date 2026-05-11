@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { cn } from '@/lib/utils'
@@ -38,13 +38,16 @@ export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: 
   const titleLen = (watchedTitle ?? '').length
   const descLen  = (watchedDescription ?? '').length
 
+  const onPreviewChangeRef = useRef(onPreviewChange)
+  useEffect(() => { onPreviewChangeRef.current = onPreviewChange })
+
   useEffect(() => {
-    onPreviewChange?.({
+    onPreviewChangeRef.current?.({
       title:         watchedTitle ?? '',
       starting_bid:  Number(watchedBid) || 0,
       duration_days: Number(watchedDuration) > 0 ? Number(watchedDuration) : 3,
     })
-  }, [watchedTitle, watchedBid, watchedDuration, onPreviewChange])
+  }, [watchedTitle, watchedBid, watchedDuration])
 
   return (
     <form onSubmit={handleSubmit(onNext)} className="space-y-5">

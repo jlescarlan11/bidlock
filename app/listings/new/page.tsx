@@ -72,7 +72,7 @@ export default function NewListingPage() {
               </div>
               <ListingPreviewCard {...previewDraft} />
               <p className="text-xs text-muted-foreground mt-3 text-center">
-                Description shown on the listing detail page
+                How your listing appears in the feed
               </p>
             </div>
           </div>
