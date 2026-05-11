@@ -67,15 +67,13 @@ export default function BidSection({
 
   const timerPillClass =
     timerVariant === 'red'
-      ? 'bg-red-600 text-white'
+      ? 'bg-red-600/90 text-white'
       : timerVariant === 'amber'
-      ? 'bg-amber-600 text-white'
+      ? 'bg-amber-600/90 text-white'
       : 'bg-black/60 text-white'
 
   function handleBidPlaced(amount: number) {
     setCurrentBid(amount)
-    setBidCount((c) => c + 1)
-    setLastBidAt(new Date().toISOString())
   }
 
   return (
@@ -101,7 +99,6 @@ export default function BidSection({
           <BidForm
             listingId={listingId}
             minBid={minBid}
-            currentBid={currentBid}
             onBidPlaced={handleBidPlaced}
           />
         ) : (
@@ -130,7 +127,6 @@ export default function BidSection({
             <BidFormCompact
               listingId={listingId}
               minBid={minBid}
-              currentBid={currentBid}
               onBidPlaced={handleBidPlaced}
             />
           )}
@@ -164,18 +160,20 @@ function TimerPill({
 function BidForm({
   listingId,
   minBid,
-  currentBid,
   onBidPlaced,
 }: {
   listingId: string
   minBid: number
-  currentBid: number
   onBidPlaced: (amount: number) => void
 }) {
   const [amount, setAmount] = useState(String(Math.ceil(minBid)))
   const [confirming, setConfirming] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (Number(amount) < minBid) setAmount(String(Math.ceil(minBid)))
+  }, [minBid])
 
   async function handleConfirm() {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -217,7 +215,7 @@ function BidForm({
         <div className="border rounded-lg p-3 bg-muted space-y-2">
           <p className="text-sm font-semibold">Confirm bid of {formatPHP(Number(amount))}?</p>
           <div className="flex gap-2 items-center">
-            <button onClick={() => setConfirming(false)} className="text-sm underline">Cancel</button>
+            <Button variant="ghost" size="sm" onClick={() => setConfirming(false)}>Cancel</Button>
             <Button onClick={handleConfirm} disabled={pending} size="sm">
               {pending ? 'Placing…' : 'Confirm'}
             </Button>
@@ -231,17 +229,19 @@ function BidForm({
 function BidFormCompact({
   listingId,
   minBid,
-  currentBid,
   onBidPlaced,
 }: {
   listingId: string
   minBid: number
-  currentBid: number
   onBidPlaced: (amount: number) => void
 }) {
   const [amount, setAmount] = useState(String(Math.ceil(minBid)))
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    if (Number(amount) < minBid) setAmount(String(Math.ceil(minBid)))
+  }, [minBid])
 
   async function handlePlace() {
     if (Number(amount) < minBid) return
