@@ -2,7 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { loginSchema, signupSchema } from '@/lib/validators/auth'
+import { loginSchema, signupSchema, resetPasswordSchema, updatePasswordSchema } from '@/lib/validators/auth'
 import { env } from '@/lib/env'
 
 export async function login(
@@ -58,4 +58,34 @@ export async function signOut() {
   const supabase = await createClient()
   await supabase.auth.signOut()
   redirect('/auth/login')
+}
+
+export async function requestPasswordReset(
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData,
+) {
+  const parsed = resetPasswordSchema.safeParse({ email: formData.get('email') })
+  if (!parsed.success) return { error: 'Please enter a valid email address.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=/auth/update-password`,
+  })
+  if (error) return { error: error.message }
+
+  return { success: true }
+}
+
+export async function updatePassword(
+  _prevState: { error?: string } | undefined,
+  formData: FormData,
+) {
+  const parsed = updatePasswordSchema.safeParse({ password: formData.get('password') })
+  if (!parsed.success) return { error: 'Password must be at least 8 characters.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
+  if (error) return { error: error.message }
+
+  redirect('/')
 }
