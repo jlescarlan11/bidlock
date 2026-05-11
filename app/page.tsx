@@ -13,23 +13,47 @@ export default async function HomePage() {
     .eq('status', 'live')
     .order('ends_at', { ascending: true })
 
+  const liveIds = (listings ?? []).map((l: any) => l.id)
+
+  const [
+    { count: itemsSold },
+    { data: soldListings },
+    { count: activeBids },
+  ] = await Promise.all([
+    db.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'ended').not('winner_id', 'is', null),
+    db.from('listings').select('current_bid').eq('status', 'ended').not('winner_id', 'is', null),
+    liveIds.length > 0
+      ? db.from('bids').select('id', { count: 'exact', head: true }).in('listing_id', liveIds)
+      : Promise.resolve({ count: 0, data: null, error: null }),
+  ])
+
+  const totalSold = (soldListings ?? []).reduce((sum: number, l: any) => sum + Number(l.current_bid), 0)
+
+  const stats = {
+    itemsSold: itemsSold ?? 0,
+    activeBids: activeBids ?? 0,
+    totalSold,
+  }
+
   return (
     <main>
-      <LandingHero listings={listings ?? []} />
+      <div className="min-h-[calc(100vh-3.5rem)] flex flex-col">
+        <LandingHero listings={listings ?? []} stats={stats} />
 
-      {/* Trust strip */}
-      <div className="bg-violet-900 py-4">
-        <div className="max-w-7xl mx-auto px-6 flex justify-center flex-wrap gap-x-8 gap-y-2">
-        {[
-          { emoji: '🔒', label: 'Secure GCash payments' },
-          { emoji: '🇵🇭', label: 'PH-verified sellers' },
-          { emoji: '🛡️', label: 'Buyer protection' },
-          { emoji: '⚡', label: 'New auctions daily' },
-        ].map(({ emoji, label }) => (
-          <span key={label} className="text-[12px] font-semibold text-violet-200 flex items-center gap-1.5">
-            <span aria-hidden="true">{emoji}</span> {label}
-          </span>
-        ))}
+        {/* Trust strip */}
+        <div className="py-4">
+          <div className="max-w-7xl mx-auto px-6 flex justify-center flex-wrap gap-x-8 gap-y-2 opacity-50">
+            {[
+              { emoji: '🔒', label: 'Secure GCash payments' },
+              { emoji: '🇵🇭', label: 'PH-verified sellers' },
+              { emoji: '🛡️', label: 'Buyer protection' },
+              { emoji: '⚡', label: 'New auctions daily' },
+            ].map(({ emoji, label }) => (
+              <span key={label} className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                <span aria-hidden="true">{emoji}</span> {label}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 

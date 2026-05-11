@@ -11,7 +11,19 @@ type HeroListing = {
   listing_photos: { storage_path: string; display_order: number }[]
 }
 
-export default async function LandingHero({ listings }: { listings: HeroListing[] }) {
+type HeroStats = {
+  itemsSold: number
+  activeBids: number
+  totalSold: number
+}
+
+function formatStat(n: number): string {
+  if (n >= 1_000_000) return `${+(n / 1_000_000).toFixed(1)}M+`
+  if (n >= 1_000) return `${+(n / 1_000).toFixed(1)}K+`
+  return String(n)
+}
+
+export default async function LandingHero({ listings, stats }: { listings: HeroListing[]; stats: HeroStats }) {
   const supabase = await createClient()
 
   const carouselListings: CarouselListing[] = listings.slice(0, 10).map(listing => {
@@ -30,7 +42,7 @@ export default async function LandingHero({ listings }: { listings: HeroListing[
   })
 
   return (
-    <section className="bg-violet-50 min-h-[calc(100vh-3.5rem)] flex items-center">
+    <section className="bg-violet-50 flex-1 flex items-center">
       <div className="max-w-7xl mx-auto px-6 w-full grid grid-cols-1 lg:grid-cols-2 gap-16 items-center py-16">
 
         {/* Left — text + CTAs + stats */}
@@ -60,17 +72,17 @@ export default async function LandingHero({ listings }: { listings: HeroListing[
           {/* Social proof strip */}
           <div className="flex items-center gap-6">
             <div>
-              <p className="text-2xl font-black text-foreground leading-none">2.3K+</p>
+              <p className="text-2xl font-black text-foreground leading-none">{formatStat(stats.itemsSold)}</p>
               <p className="text-xs text-muted-foreground mt-1">Items sold</p>
             </div>
             <div className="w-px h-10 bg-border" />
             <div>
-              <p className="text-2xl font-black text-foreground leading-none">847</p>
+              <p className="text-2xl font-black text-foreground leading-none">{formatStat(stats.activeBids)}</p>
               <p className="text-xs text-muted-foreground mt-1">Active bids</p>
             </div>
             <div className="w-px h-10 bg-border" />
             <div>
-              <p className="text-2xl font-black text-foreground leading-none">₱4.2M+</p>
+              <p className="text-2xl font-black text-foreground leading-none">₱{formatStat(stats.totalSold)}</p>
               <p className="text-xs text-muted-foreground mt-1">Total sold</p>
             </div>
           </div>
