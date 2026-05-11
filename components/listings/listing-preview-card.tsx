@@ -1,28 +1,34 @@
 'use client'
 
 import { Camera } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { formatPHP } from '@/lib/utils/currency'
 
 type Props = {
   title: string
   starting_bid: number
   duration_days: number
+  photoUrl?: string
 }
 
-export function ListingPreviewCard({ title, starting_bid, duration_days }: Props) {
+export function ListingPreviewCard({ title, starting_bid, duration_days, photoUrl }: Props) {
   return (
     <div className="group rounded-2xl border overflow-hidden bg-card hover:shadow-xl hover:shadow-violet-200/60 hover:-translate-y-1 hover:border-primary/30 transition-all duration-200 ease-out">
 
-      {/* Image area — grayed out, placeholder until step 2 */}
-      <div className="aspect-[4/3] bg-gray-100 relative overflow-hidden opacity-60">
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
-          <Camera className="text-gray-400" size={28} aria-hidden="true" />
-          <p className="text-xs text-gray-400">Add photos in step 2</p>
-        </div>
+      {/* Image area — placeholder until photoUrl is provided */}
+      <div className={cn('aspect-[4/3] relative overflow-hidden', !photoUrl && 'bg-gray-100 opacity-60')}>
+        {photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={photoUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-1.5">
+            <Camera className="text-gray-400" size={28} aria-hidden="true" />
+            <p className="text-xs text-gray-400">Add photos in step 2</p>
+          </div>
+        )}
 
-        {/* Timer pill — mirrors ListingCard gray state (bg-black/60) */}
+        {/* Timer pill — mirrors ListingCard gray state */}
         <div className="absolute top-2.5 right-2.5">
-          {/* Preview: show pill when duration is set. Real card uses ends_at timestamp. */}
           {duration_days > 0 ? (
             <div className="bg-black/60 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 leading-none backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" aria-hidden="true" />
