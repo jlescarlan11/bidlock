@@ -43,7 +43,7 @@ const [previewDraft, setPreviewDraft] = useState<PreviewDraft>({
 
 **Layout when `step === 0`:**
 ```
-<div className="lg:grid lg:grid-cols-[480px_400px] lg:gap-12 lg:justify-center">
+<div className="max-w-[640px] mx-auto lg:max-w-none lg:grid lg:grid-cols-[480px_400px] lg:gap-12 lg:justify-center">
   {/* Left column */}
   <div>
     {/* Step indicator */}
