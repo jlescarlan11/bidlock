@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { listingDetailsSchema, type ListingDetailsInput } from '@/lib/validators/listing'
@@ -9,37 +10,85 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
+export type PreviewDraft = {
+  title: string
+  starting_bid: number
+  duration_days: number
+}
+
 type Props = {
   defaultValues: Partial<ListingDetailsInput>
   onNext: (values: ListingDetailsInput) => void
+  onPreviewChange?: (draft: PreviewDraft) => void
 }
 
-export default function DetailsStep({ defaultValues, onNext }: Props) {
+export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { register, handleSubmit, setValue, formState: { errors } } = useForm<ListingDetailsInput>({
+  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ListingDetailsInput>({
     resolver: zodResolver(listingDetailsSchema) as any,
     defaultValues: { duration_days: 3, ...defaultValues },
   })
 
+  const watchedTitle       = watch('title')
+  const watchedDescription = watch('description')
+  const watchedBid         = watch('starting_bid')
+  const watchedDuration    = watch('duration_days')
+
+  const titleLen = (watchedTitle ?? '').length
+  const descLen  = (watchedDescription ?? '').length
+
+  useEffect(() => {
+    onPreviewChange?.({
+      title:         watchedTitle ?? '',
+      starting_bid:  Number(watchedBid) || 0,
+      duration_days: Number(watchedDuration) || 3,
+    })
+  }, [watchedTitle, watchedBid, watchedDuration, onPreviewChange])
+
   return (
-    <form onSubmit={handleSubmit(onNext)} className="space-y-4">
-      <div className="space-y-1">
-        <Label htmlFor="title">Title</Label>
+    <form onSubmit={handleSubmit(onNext)} className="space-y-5">
+      <div>
+        <Label htmlFor="title" className="text-sm font-medium mb-1.5 block">Title</Label>
         <Input id="title" {...register('title')} placeholder="5–100 characters" />
-        {errors.title && <p className="text-xs text-destructive">{errors.title.message}</p>}
+        <p className={`text-xs text-right mt-1 ${titleLen > 100 ? 'text-destructive' : 'text-muted-foreground'}`}>
+          {titleLen}/100
+        </p>
+        {errors.title && <p className="text-xs text-destructive mt-1">{errors.title.message}</p>}
       </div>
-      <div className="space-y-1">
-        <Label htmlFor="description">Description</Label>
-        <Textarea id="description" {...register('description')} rows={4} placeholder="20–2000 characters" />
-        {errors.description && <p className="text-xs text-destructive">{errors.description.message}</p>}
+
+      <div>
+        <Label htmlFor="description" className="text-sm font-medium mb-1.5 block">Description</Label>
+        <Textarea
+          id="description"
+          {...register('description')}
+          rows={4}
+          placeholder="20–2000 characters"
+          className="min-h-[120px] resize-y"
+        />
+        <p className="text-xs text-right mt-1 text-muted-foreground">{descLen}/2000</p>
+        {errors.description && <p className="text-xs text-destructive mt-1">{errors.description.message}</p>}
       </div>
-      <div className="space-y-1">
-        <Label htmlFor="starting_bid">Starting bid (₱)</Label>
-        <Input id="starting_bid" type="number" step="1" {...register('starting_bid')} />
-        {errors.starting_bid && <p className="text-xs text-destructive">{errors.starting_bid.message}</p>}
+
+      <div>
+        <Label htmlFor="starting_bid" className="text-sm font-medium mb-1.5 block">Starting bid (₱)</Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm select-none" aria-hidden="true">
+            ₱
+          </span>
+          <Input
+            id="starting_bid"
+            type="number"
+            step="1"
+            className="pl-7"
+            placeholder="0.00"
+            {...register('starting_bid')}
+          />
+        </div>
+        {errors.starting_bid && <p className="text-xs text-destructive mt-1">{errors.starting_bid.message}</p>}
       </div>
-      <div className="space-y-1">
-        <Label>Duration</Label>
+
+      <div>
+        <Label className="text-sm font-medium mb-1.5 block">Duration</Label>
         <Select
           defaultValue={String(defaultValues.duration_days ?? 3)}
           onValueChange={(v) => setValue('duration_days', Number(v))}
@@ -53,8 +102,9 @@ export default function DetailsStep({ defaultValues, onNext }: Props) {
             <SelectItem value="7">7 days</SelectItem>
           </SelectContent>
         </Select>
-        {errors.duration_days && <p className="text-xs text-destructive">{errors.duration_days.message}</p>}
+        {errors.duration_days && <p className="text-xs text-destructive mt-1">{errors.duration_days.message}</p>}
       </div>
+
       <Button type="submit" className="w-full">Next: Photos →</Button>
     </form>
   )
