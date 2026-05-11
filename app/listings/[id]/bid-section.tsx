@@ -70,7 +70,7 @@ export default function BidSection({
       ? 'bg-red-600/90 text-white'
       : timerVariant === 'amber'
       ? 'bg-amber-600/90 text-white'
-      : 'bg-black/60 text-white'
+      : 'bg-foreground/60 text-background'
 
   function handleBidPlaced(amount: number) {
     setCurrentBid(amount)
