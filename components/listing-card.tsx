@@ -21,8 +21,9 @@ type Props = {
 // bid pill, not the card background — popularity ≠ urgency.
 function getCardState(endsAt: string) {
   const hoursLeft = (new Date(endsAt).getTime() - Date.now()) / 3_600_000
-  const isHot  = hoursLeft < 1
-  const isWarm = !isHot && hoursLeft < 24
+  const isLive = hoursLeft > 0
+  const isHot  = isLive && hoursLeft < 1
+  const isWarm = isLive && !isHot && hoursLeft < 24
   const timerVariant: 'gray' | 'amber' | 'red' =
     isHot ? 'red' : isWarm ? 'amber' : 'gray'
   return { isHot, isWarm, timerVariant }
@@ -61,7 +62,9 @@ export default async function ListingCard({ listing }: Props) {
   const isHeated = isWarm || isHot
 
   const bidPillLabel =
-    listing.bid_count > 99 ? '99+' : `${listing.bid_count} bids`
+    listing.bid_count > 99
+      ? '99+'
+      : `${listing.bid_count} bid${listing.bid_count !== 1 ? 's' : ''}`
   const activityText = getActivityText(
     listing.bid_count,
     listing.last_bid_at,
