@@ -22,13 +22,14 @@ export function ListingPreviewCard({ title, starting_bid, duration_days }: Props
 
         {/* Timer pill — mirrors ListingCard gray state (bg-black/60) */}
         <div className="absolute top-2.5 right-2.5">
+          {/* Preview: show pill when duration is set. Real card uses ends_at timestamp. */}
           {duration_days > 0 ? (
             <div className="bg-black/60 text-white text-[10px] font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 leading-none backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" aria-hidden="true" />
               Ends in {duration_days}d
             </div>
           ) : (
-            <div className="bg-black/30 text-white/60 text-[10px] font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 leading-none backdrop-blur-md">
+            <div className="bg-gray-500/60 text-white/60 text-[10px] font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 leading-none backdrop-blur-md">
               <span className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" aria-hidden="true" />
               Ends in —d
             </div>
@@ -50,7 +51,7 @@ export function ListingPreviewCard({ title, starting_bid, duration_days }: Props
           {starting_bid > 0 ? (
             <p className="text-xl font-black text-primary leading-none">{formatPHP(starting_bid)}</p>
           ) : (
-            <p className="text-xl font-black text-gray-400 leading-none">₱0.00</p>
+            <p className="text-xl font-black text-gray-400 leading-none">{formatPHP(0)}</p>
           )}
         </div>
 
