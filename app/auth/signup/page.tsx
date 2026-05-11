@@ -58,7 +58,7 @@ export default function SignupPage() {
               name="password"
               autoComplete="new-password"
               required
-              minLength={6}
+              minLength={8}
             />
             <p className="text-xs text-slate-400">Use 8+ characters with a number and symbol</p>
           </div>
