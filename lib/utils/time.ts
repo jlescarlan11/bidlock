@@ -21,3 +21,15 @@ export function formatTimeRemaining(endsAt: string | Date): string {
   parts.push(`${minutes}m`)
   return parts.join(' ')
 }
+
+export function formatRelativeTime(date: string | Date): string {
+  const diffMs = Date.now() - new Date(date).getTime()
+  if (isNaN(diffMs)) return 'unknown'
+  const s = Math.floor(diffMs / 1000)
+  if (s < 60) return 'just now'
+  const m = Math.floor(s / 60)
+  if (m < 60) return `${m}m ago`
+  const h = Math.floor(m / 60)
+  if (h < 24) return `${h}h ago`
+  return `${Math.floor(h / 24)}d ago`
+}
