@@ -77,8 +77,8 @@ export default function HeroCarousel({ listings }: { listings: CarouselListing[]
         Per-slot scale creates the coverflow depth effect.
       */}
       <div
+        className="flex"
         style={{
-          display: 'flex',
           width: `${(extLen / VISIBLE) * 100}%`,
           transform: `translateX(-${(current / extLen) * 100}%)`,
           transition: animated ? 'transform 440ms cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
@@ -93,11 +93,9 @@ export default function HeroCarousel({ listings }: { listings: CarouselListing[]
           return (
             <div
               key={`${id}-${i}`}
+              className={`px-2 shrink-0 ${isCenter ? 'z-20' : 'z-10'}`}
               style={{
                 width: `${100 / extLen}%`,
-                padding: '0 8px',
-                flexShrink: 0,
-                zIndex: isCenter ? 20 : 10,
                 transform: `scale(${scale})`,
                 filter: `brightness(${brightness})`,
                 transition: animated
@@ -107,8 +105,7 @@ export default function HeroCarousel({ listings }: { listings: CarouselListing[]
             >
               <Link
                 href={`/listings/${id}`}
-                style={{ aspectRatio: '3/4', display: 'block' }}
-                className="group relative rounded-2xl overflow-hidden"
+                className="group relative rounded-2xl overflow-hidden block aspect-[3/4]"
               >
                 {/* Background */}
                 <div className="absolute inset-0">
@@ -131,10 +128,7 @@ export default function HeroCarousel({ listings }: { listings: CarouselListing[]
                 {/* Info panel */}
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   {/* Title — always visible */}
-                  <p
-                    className="text-white font-normal text-xs line-clamp-2 text-center"
-                    style={{ textShadow: '0 1px 2px rgba(0,0,0,0.3)' }}
-                  >{title}</p>
+                  <p className="text-white font-normal text-xs line-clamp-2 text-center [text-shadow:0_1px_2px_rgba(0,0,0,0.3)]">{title}</p>
                   {/* Countdown + price — hover only */}
                   <div className="overflow-hidden max-h-0 group-hover:max-h-24 transition-all duration-300 ease-out">
                     <div className="flex items-center justify-center gap-1.5 mt-1.5">
