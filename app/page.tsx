@@ -35,10 +35,10 @@ export default async function HomePage() {
 
       {/* Reassurance — "Before you bid" */}
       <section className="max-w-7xl mx-auto px-6 py-16">
-        <p className="text-[11px] font-bold tracking-[0.18em] text-violet-500 uppercase text-center mb-3">
+        <p className="text-[11px] font-bold tracking-[0.18em] text-primary uppercase text-center mb-3">
           Before you bid
         </p>
-        <h2 className="text-3xl font-black text-stone-950 text-center mb-10">
+        <h2 className="text-3xl font-black text-foreground text-center mb-10">
           Simple. Transparent. Fair.
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
@@ -59,10 +59,10 @@ export default async function HomePage() {
               body: 'Quick GCash transfer, seller ships, item arrives. Simple as that.',
             },
           ].map(({ icon, title, body }) => (
-            <div key={title} className="bg-violet-50 rounded-2xl p-6 border border-violet-100 hover:border-violet-300 transition-colors">
+            <div key={title} className="bg-muted rounded-2xl p-6 border border-border hover:border-primary/40 transition-colors">
               <p className="text-3xl mb-4" aria-hidden="true">{icon}</p>
-              <p className="text-base font-extrabold text-stone-950 mb-2 leading-snug">{title}</p>
-              <p className="text-sm text-gray-500 leading-relaxed">{body}</p>
+              <p className="text-base font-extrabold text-foreground mb-2 leading-snug">{title}</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
             </div>
           ))}
         </div>
@@ -70,9 +70,9 @@ export default async function HomePage() {
 
       {/* Live auctions grid — anchor target for hero CTA */}
       <section id="live-auctions" className="max-w-7xl mx-auto px-6 pb-16">
-        <div className="border-t border-violet-100 pt-10">
+        <div className="border-t border-border pt-10">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-black text-stone-950 flex items-center gap-3">
+            <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
               Live Auctions
               <span className="bg-orange-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wide">
                 LIVE
@@ -82,8 +82,8 @@ export default async function HomePage() {
           {!listings?.length && (
             <div className="text-center py-16">
               <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
-              <p className="font-bold text-stone-950 mb-1">No live auctions right now</p>
-              <p className="text-sm text-gray-400">Check back soon — new items drop daily.</p>
+              <p className="font-bold text-foreground mb-1">No live auctions right now</p>
+              <p className="text-sm text-muted-foreground">Check back soon — new items drop daily.</p>
             </div>
           )}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
