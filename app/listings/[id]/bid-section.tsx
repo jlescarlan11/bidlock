@@ -107,7 +107,9 @@ export default function BidSection({
 
         {/* Seller info */}
         {sellerName && (
-          <p className="text-sm text-muted-foreground">Sold by {sellerName}</p>
+          <p className="text-sm text-muted-foreground">
+            Sold by {userId === auctioneer_id ? 'you' : sellerName}
+          </p>
         )}
       </div>
 
