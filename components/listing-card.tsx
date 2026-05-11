@@ -24,7 +24,7 @@ function getCardState(endsAt: string) {
   const isHot  = hoursLeft < 1
   const isWarm = !isHot && hoursLeft < 24
   const timerVariant: 'gray' | 'amber' | 'red' =
-    isHot ? 'red' : hoursLeft < 24 ? 'amber' : 'gray'
+    isHot ? 'red' : isWarm ? 'amber' : 'gray'
   return { isHot, isWarm, timerVariant }
 }
 
@@ -40,6 +40,7 @@ function getActivityText(
   if (bidCount === 0) return 'No bids yet'
   if (!isHot || !lastBidAt) return null
   const minutesAgo = (Date.now() - new Date(lastBidAt).getTime()) / 60_000
+  if (minutesAgo < 1) return 'last bid just now'
   return minutesAgo < 60 ? `last bid ${Math.round(minutesAgo)}m ago` : null
 }
 
