@@ -7,13 +7,13 @@ export default async function HomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
 
-  const { data: listings } = await db
+  const { data: rawListings } = await db
     .from('listings')
-    .select('id, title, current_bid, ends_at, listing_photos(storage_path, display_order)')
+    .select('id, title, current_bid, ends_at, listing_photos(storage_path, display_order), bids(created_at)')
     .eq('status', 'live')
     .order('ends_at', { ascending: true })
 
-  const liveIds = (listings ?? []).map((l: any) => l.id)
+  const liveIds = (rawListings ?? []).map((l: any) => l.id)
 
   const [
     { count: itemsSold },
@@ -29,6 +29,29 @@ export default async function HomePage() {
 
   const totalSold = (soldListings ?? []).reduce((sum: number, l: any) => sum + Number(l.current_bid), 0)
 
+  const listings = (rawListings ?? []).map((listing: any) => {
+    const bidRows: { created_at: string }[] = listing.bids ?? []
+    const bid_count = bidRows.length
+    const last_bid_at =
+      bidRows.length > 0
+        ? bidRows.reduce(
+            (max: string, b: any) => (b.created_at > max ? b.created_at : max),
+            bidRows[0].created_at
+          )
+        : null
+    return {
+      id: listing.id,
+      title: listing.title,
+      current_bid: listing.current_bid,
+      ends_at: listing.ends_at,
+      bid_count,
+      last_bid_at,
+      listing_photos: (listing.listing_photos ?? []).sort(
+        (a: any, b: any) => a.display_order - b.display_order
+      ),
+    }
+  })
+
   const stats = {
     itemsSold: itemsSold ?? 0,
     activeBids: activeBids ?? 0,
@@ -38,7 +61,7 @@ export default async function HomePage() {
   return (
     <main>
       <div className="min-h-[calc(100vh-3.5rem)] flex flex-col">
-        <LandingHero listings={listings ?? []} stats={stats} />
+        <LandingHero listings={listings} stats={stats} />
 
         {/* Trust strip */}
         <div className="py-4">
@@ -103,7 +126,7 @@ export default async function HomePage() {
               </span>
             </h2>
           </div>
-          {!listings?.length && (
+          {!listings.length && (
             <div className="text-center py-16">
               <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
               <p className="font-bold text-foreground mb-1">No live auctions right now</p>
@@ -111,16 +134,8 @@ export default async function HomePage() {
             </div>
           )}
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {listings?.map((listing: any) => (
-              <ListingCard
-                key={listing.id}
-                listing={{
-                  ...listing,
-                  listing_photos: (listing.listing_photos ?? []).sort(
-                    (a: any, b: any) => a.display_order - b.display_order
-                  ),
-                }}
-              />
+            {listings.map((listing: any) => (
+              <ListingCard key={listing.id} listing={listing} />
             ))}
           </div>
         </div>
