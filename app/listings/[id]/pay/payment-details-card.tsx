@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import Image from 'next/image'
 import { ImageIcon } from 'lucide-react'
 import { CopyableField } from './copyable-field'
@@ -25,6 +25,12 @@ export function PaymentDetailsCard({
 }: PaymentDetailsCardProps) {
   const [copiedField, setCopiedField] = useState<string | null>(null)
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current)
+    }
+  }, [])
 
   const handleCopy = async (text: string, key: string) => {
     if (timerRef.current) clearTimeout(timerRef.current)
