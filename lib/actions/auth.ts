@@ -84,6 +84,9 @@ export async function updatePassword(
   if (!parsed.success) return { error: 'Password must be at least 8 characters.' }
 
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Your reset link has expired. Please request a new one.' }
+
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password })
   if (error) return { error: error.message }
 
