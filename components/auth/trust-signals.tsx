@@ -7,12 +7,12 @@ export function TrustSignals() {
         <ShieldCheck className="h-3 w-3" />
         Bank-grade encryption
       </span>
-      <span className="text-slate-300 text-xs">·</span>
+      <span className="text-slate-300 text-xs" aria-hidden="true">·</span>
       <span className="flex items-center gap-1.5 text-xs text-slate-400">
         <Lock className="h-3 w-3" />
         Verified bidders only
       </span>
-      <span className="text-slate-300 text-xs">·</span>
+      <span className="text-slate-300 text-xs" aria-hidden="true">·</span>
       <span className="flex items-center gap-1.5 text-xs text-slate-400">
         <BadgeCheck className="h-3 w-3" />
         Trusted by 10,000+ collectors
