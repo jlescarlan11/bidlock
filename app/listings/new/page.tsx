@@ -67,6 +67,7 @@ export default function NewListingPage() {
           )}
           {step === 1 && (
             <PhotosStep
+              initialPhotos={data.photos ?? []}
               onBack={() => {
                 if (previewPhotoUrl) URL.revokeObjectURL(previewPhotoUrl)
                 setPreviewPhotoUrl(undefined)

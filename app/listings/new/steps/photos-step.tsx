@@ -15,6 +15,7 @@ type Props = {
   onBack: () => void
   onNext: (photos: File[]) => void
   onPhotosChange?: (urls: string[]) => void
+  initialPhotos?: File[]
 }
 
 function SortableThumbnail({
@@ -58,8 +59,10 @@ function SortableThumbnail({
   )
 }
 
-export default function PhotosStep({ onBack, onNext, onPhotosChange }: Props) {
-  const [entries, setEntries] = useState<PhotoEntry[]>([])
+export default function PhotosStep({ onBack, onNext, onPhotosChange, initialPhotos }: Props) {
+  const [entries, setEntries] = useState<PhotoEntry[]>(() =>
+    (initialPhotos ?? []).map((f) => ({ file: f, url: URL.createObjectURL(f) }))
+  )
   const [error, setError] = useState('')
   const [isDragOver, setIsDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
