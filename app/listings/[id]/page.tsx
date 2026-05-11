@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
-import Image from 'next/image'
 import { formatPHP } from '@/lib/utils/currency'
-import Countdown from '@/components/countdown'
+import ImageGallery from '@/components/image-gallery'
 import BidSection from './bid-section'
+import RecentBidsSection from './recent-bids-section'
 import ChatSection from './chat-section'
 import RatingForm from './rating-form'
 import DisputeForm from './dispute-form'
@@ -32,20 +32,28 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   const { data: { user } } = await supabase.auth.getUser()
 
   const photos = (listing.listing_photos ?? [])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .sort((a: any, b: any) => a.display_order - b.display_order)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .map((p: any) => supabase.storage.from('listing-photos').getPublicUrl(p.storage_path).data.publicUrl)
 
   const { data: recentBids } = await db
     .from('bids')
-    .select('id, amount, created_at, profiles!bidder_id(display_name)')
+    .select('id, amount, created_at, bidder_id, profiles!bidder_id(display_name)')
     .eq('listing_id', id)
     .order('created_at', { ascending: false })
-    .limit(10)
+    .limit(20)
+
+  const { count: bidCount } = await db
+    .from('bids')
+    .select('*', { count: 'exact', head: true })
+    .eq('listing_id', id)
+
+  const lastBidAt: string | null = recentBids?.[0]?.created_at ?? null
 
   const isAuctioneer = user?.id === listing.auctioneer_id
   const isWinner = user?.id === listing.winner_id
   const showChat = listing.status === 'ended' && listing.winner_id !== null && (isAuctioneer || isWinner)
-  const showContactCard = showChat
 
   let winnerContact: { phone_number: string | null; gcash_name: string | null } | null = null
   if (isAuctioneer && listing.status === 'ended' && listing.winner_id) {
@@ -70,8 +78,6 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     recipientId = isAuctioneer ? listing.winner_id : listing.auctioneer_id
   }
 
-  // Fetch existing rating for this user
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let myRating: { verdict: string } | null = null
   let rateeId: string | null = null
   let rateeName: string | null = null
@@ -93,105 +99,137 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
       : (listing.auctioneer as any)?.display_name
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const sellerName: string | null = (listing.auctioneer as any)?.display_name ?? null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const winnerName: string | null = (listing.winner as any)?.display_name ?? null
+
   return (
-    <main className="max-w-2xl mx-auto p-4 pt-8 space-y-6">
-      {photos.length > 0 && (
-        <div className="aspect-video relative rounded-lg overflow-hidden bg-muted">
-          <Image src={photos[0]} alt={listing.title} fill className="object-contain" />
-        </div>
-      )}
+    <main className="max-w-6xl mx-auto px-4 py-8 pb-32 md:pb-8">
+      <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 items-start">
 
-      <div>
-        <h1 className="text-2xl font-bold">{listing.title}</h1>
-        <p className="text-muted-foreground text-sm mt-1">
-          by {listing.auctioneer?.display_name}
-        </p>
-      </div>
+        {/* ── Left column ── */}
+        <div className="space-y-8">
+          <ImageGallery photos={photos} title={listing.title} listingId={id} />
 
-      <p className="text-sm whitespace-pre-wrap">{listing.description}</p>
-
-      {listing.status === 'live' && listing.ends_at && (
-        <div className="flex justify-between items-center p-4 bg-muted rounded-lg">
-          <div>
-            <p className="text-xs text-muted-foreground">Current bid</p>
-            <p className="text-2xl font-bold">{formatPHP(listing.current_bid)}</p>
+          {/* Title + seller: mobile only */}
+          <div className="md:hidden">
+            <TitleHeader title={listing.title} seller={sellerName} />
           </div>
-          <div className="text-right">
-            <p className="text-xs text-muted-foreground">Ends in</p>
-            <p className="text-xl font-semibold">
-              <Countdown endsAt={listing.ends_at} />
+
+          <div>
+            <h2 className="text-lg font-bold mb-3">About this item</h2>
+            <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+              {listing.description}
             </p>
           </div>
-        </div>
-      )}
 
-      {listing.status === 'ended' && (
-        <div className="p-4 bg-muted rounded-lg">
-          <p className="font-semibold">Auction ended</p>
-          {listing.winner_id
-            ? <p className="text-sm">Won by {listing.winner?.display_name} for {formatPHP(listing.current_bid)}</p>
-            : <p className="text-sm text-muted-foreground">No bids were placed.</p>
-          }
-        </div>
-      )}
+          <RecentBidsSection
+            listingId={id}
+            initialBids={recentBids ?? []}
+            userId={user?.id ?? null}
+            enableRealtime={listing.status === 'live'}
+          />
 
-      {showContactCard && (
-        <div className="border rounded-lg p-4 space-y-2">
-          <p className="font-semibold">Contact Information</p>
-          <p className="text-xs text-muted-foreground">
-            Coordinate delivery and final payment directly. We do not handle either. Report violations via the dispute form.
-          </p>
-          {isAuctioneer && (
-            <div className="text-sm space-y-1">
-              <p><span className="font-medium">Winner&apos;s phone:</span> {winnerContact?.phone_number}</p>
-              <p><span className="font-medium">Winner&apos;s GCash name:</span> {winnerContact?.gcash_name}</p>
+          {/* Ended-auction UI */}
+          {showChat && listing.winner_id !== null && (
+            <div className="border rounded-lg p-4 space-y-2">
+              <p className="font-semibold">Contact Information</p>
+              <p className="text-xs text-muted-foreground">
+                Coordinate delivery and final payment directly. We do not handle either. Report violations via the dispute form.
+              </p>
+              {isAuctioneer && (
+                <div className="text-sm space-y-1">
+                  <p><span className="font-medium">Winner&apos;s phone:</span> {winnerContact?.phone_number}</p>
+                  <p><span className="font-medium">Winner&apos;s GCash name:</span> {winnerContact?.gcash_name}</p>
+                </div>
+              )}
+              {isWinner && (
+                <div className="text-sm space-y-1">
+                  <p>Get the auctioneer&apos;s contact by visiting your bids page.</p>
+                </div>
+              )}
             </div>
           )}
-          {isWinner && (
-            <div className="text-sm space-y-1">
-              <p>Get the auctioneer&apos;s contact by visiting your bids page.</p>
-            </div>
+
+          {showChat && user && recipientId && (
+            <ChatSection
+              listingId={id}
+              recipientId={recipientId}
+              userId={user.id}
+              initialMessages={initialMessages}
+            />
+          )}
+
+          {listing.status === 'ended' && listing.winner_id && user && rateeId && rateeName && (isAuctioneer || isWinner) && (
+            <RatingForm
+              listingId={id}
+              rateeId={rateeId}
+              rateeName={rateeName}
+              existingRating={myRating}
+            />
+          )}
+
+          {listing.status === 'ended' && user && (isAuctioneer || isWinner) && rateeId && rateeName && (
+            <DisputeForm
+              listingId={id}
+              reportedUserId={rateeId}
+              reportedUserName={rateeName}
+            />
           )}
         </div>
-      )}
 
-      {showChat && user && recipientId && (
-        <ChatSection
-          listingId={id}
-          recipientId={recipientId}
-          userId={user.id}
-          initialMessages={initialMessages}
-        />
-      )}
+        {/* ── Right column ── */}
+        <div className="sticky top-24 space-y-4">
+          <div className="hidden md:block">
+            <TitleHeader title={listing.title} seller={sellerName} />
+          </div>
 
-      {listing.status === 'ended' && listing.winner_id && user && rateeId && rateeName && (isAuctioneer || isWinner) && (
-        <RatingForm
-          listingId={id}
-          rateeId={rateeId}
-          rateeName={rateeName}
-          existingRating={myRating}
-        />
-      )}
+          {listing.status === 'live' ? (
+            <BidSection
+              listingId={id}
+              currentBid={listing.current_bid}
+              endsAt={listing.ends_at}
+              status={listing.status}
+              auctioneer_id={listing.auctioneer_id}
+              userId={user?.id ?? null}
+              bidCount={bidCount ?? 0}
+              lastBidAt={lastBidAt}
+              sellerName={sellerName}
+            />
+          ) : (
+            <EndedBanner winnerName={winnerName} amount={listing.current_bid} />
+          )}
+        </div>
 
-      {listing.status === 'ended' && user && (isAuctioneer || isWinner) && rateeId && rateeName && (
-        <DisputeForm
-          listingId={id}
-          reportedUserId={rateeId}
-          reportedUserName={rateeName}
-        />
-      )}
-
-      <BidSection
-        listingId={id}
-        currentBid={listing.current_bid}
-        endsAt={listing.ends_at}
-        status={listing.status}
-        auctioneer_id={listing.auctioneer_id}
-        userId={user?.id ?? null}
-        bidCount={recentBids?.length ?? 0}
-        lastBidAt={recentBids?.[0]?.created_at ?? null}
-        sellerName={(listing.auctioneer as any)?.display_name ?? null}
-      />
+      </div>
     </main>
+  )
+}
+
+// ─── Local components ─────────────────────────────────────────────────────────
+
+function TitleHeader({ title, seller }: { title: string; seller: string | null }) {
+  return (
+    <div>
+      <h1 className="text-3xl font-black text-foreground">{title}</h1>
+      {seller && <p className="text-sm text-muted-foreground mt-1">by {seller}</p>}
+    </div>
+  )
+}
+
+function EndedBanner({ winnerName, amount }: { winnerName: string | null; amount: number }) {
+  return (
+    <div className="bg-card border border-border rounded-xl p-6">
+      <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Auction ended</p>
+      {winnerName ? (
+        <>
+          <p className="text-2xl font-black text-foreground">{formatPHP(amount)}</p>
+          <p className="text-sm text-muted-foreground mt-1">Won by {winnerName}</p>
+        </>
+      ) : (
+        <p className="text-sm text-muted-foreground">No bids were placed.</p>
+      )}
+    </div>
   )
 }
