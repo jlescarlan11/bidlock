@@ -70,7 +70,7 @@ export default function NewListingPage() {
               <PhotosStep
                 onBack={() => { setPreviewPhotoUrl(undefined); setStep(0) }}
                 onNext={(photos) => { setData((d) => ({ ...d, photos })); setStep(2) }}
-                onPhotosChange={(urls) => setPreviewPhotoUrl(urls[0])}
+                onPhotosChange={(urls) => setPreviewPhotoUrl(urls.length > 0 ? urls[0] : undefined)}
               />
             )}
           </div>
