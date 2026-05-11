@@ -101,9 +101,9 @@ export default function BidSection({
             minBid={minBid}
             onBidPlaced={handleBidPlaced}
           />
-        ) : (
+        ) : !userId ? (
           <p className="text-sm text-muted-foreground">Sign in to place a bid.</p>
-        )}
+        ) : null}
 
         {/* Seller info */}
         {sellerName && (
