@@ -67,7 +67,11 @@ export default function NewListingPage() {
           )}
           {step === 1 && (
             <PhotosStep
-              onBack={() => { setPreviewPhotoUrl(undefined); setStep(0) }}
+              onBack={() => {
+                if (previewPhotoUrl) URL.revokeObjectURL(previewPhotoUrl)
+                setPreviewPhotoUrl(undefined)
+                setStep(0)
+              }}
               onNext={(photos) => {
                 const url = photos[0] ? URL.createObjectURL(photos[0]) : undefined
                 setPreviewPhotoUrl(url)
