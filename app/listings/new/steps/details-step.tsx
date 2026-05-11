@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { cn } from '@/lib/utils'
 import { listingDetailsSchema, type ListingDetailsInput } from '@/lib/validators/listing'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -41,7 +42,7 @@ export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: 
     onPreviewChange?.({
       title:         watchedTitle ?? '',
       starting_bid:  Number(watchedBid) || 0,
-      duration_days: Number(watchedDuration) || 3,
+      duration_days: Number(watchedDuration) > 0 ? Number(watchedDuration) : 3,
     })
   }, [watchedTitle, watchedBid, watchedDuration, onPreviewChange])
 
@@ -50,7 +51,7 @@ export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: 
       <div>
         <Label htmlFor="title" className="text-sm font-medium mb-1.5 block">Title</Label>
         <Input id="title" {...register('title')} placeholder="5–100 characters" />
-        <p className={`text-xs text-right mt-1 ${titleLen > 100 ? 'text-destructive' : 'text-muted-foreground'}`}>
+        <p className={cn('text-xs text-right mt-1', titleLen > 100 ? 'text-destructive' : 'text-muted-foreground')}>
           {titleLen}/100
         </p>
         {errors.title && <p className="text-xs text-destructive mt-1">{errors.title.message}</p>}
@@ -70,7 +71,7 @@ export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: 
       </div>
 
       <div>
-        <Label htmlFor="starting_bid" className="text-sm font-medium mb-1.5 block">Starting bid (₱)</Label>
+        <Label htmlFor="starting_bid" className="text-sm font-medium mb-1.5 block">Starting bid</Label>
         <div className="relative">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm select-none" aria-hidden="true">
             ₱
