@@ -2,15 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { formatPHP } from '@/lib/utils/currency'
+import { formatTimeRemaining, formatRelativeTime } from '@/lib/utils/time'
 import { minBidAmount } from '@/lib/validators/bid'
 import { createClient } from '@/lib/supabase/client'
-
-type Bid = {
-  id: string
-  amount: number
-  created_at: string
-  profiles: { display_name: string | null } | null
-}
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
 type Props = {
   listingId: string
@@ -19,79 +15,162 @@ type Props = {
   status: string
   auctioneer_id: string
   userId: string | null
-  initialBids: Bid[]
+  bidCount: number
+  lastBidAt: string | null
+  sellerName: string | null
 }
 
 export default function BidSection({
-  listingId, currentBid: initialBid, endsAt, status,
-  auctioneer_id, userId, initialBids,
+  listingId,
+  currentBid: initialBid,
+  endsAt,
+  status,
+  auctioneer_id,
+  userId,
+  bidCount: initialBidCount,
+  lastBidAt: initialLastBidAt,
+  sellerName,
 }: Props) {
-  const [bids, setBids] = useState(initialBids)
   const [currentBid, setCurrentBid] = useState(initialBid)
+  const [bidCount, setBidCount] = useState(initialBidCount)
+  const [lastBidAt, setLastBidAt] = useState(initialLastBidAt)
 
   useEffect(() => {
     const supabase = createClient()
-
     const channel = supabase
-      .channel(`bids:${listingId}`)
+      .channel(`bid-panel:${listingId}`)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'bids', filter: `listing_id=eq.${listingId}` },
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (payload: any) => {
-          const newBid = payload.new
-          setCurrentBid(newBid.amount)
-          setBids((prev) => [
-            { id: newBid.id, amount: newBid.amount, created_at: newBid.created_at, profiles: null },
-            ...prev.slice(0, 9),
-          ])
+          setCurrentBid(payload.new.amount)
+          setBidCount((c) => c + 1)
+          setLastBidAt(payload.new.created_at)
         }
       )
       .subscribe()
-
     return () => { supabase.removeChannel(channel) }
   }, [listingId])
 
-  const canBid = status === 'live' && userId && userId !== auctioneer_id
+  const hoursLeft = endsAt ? (new Date(endsAt).getTime() - Date.now()) / 36e5 : Infinity
+  const timerVariant = hoursLeft < 1 ? 'red' : hoursLeft < 24 ? 'amber' : 'gray'
+  const showPulse = timerVariant === 'red'
+
+  const canBid = status === 'live' && !!userId && userId !== auctioneer_id
   const minBid = minBidAmount(currentBid)
 
-  return (
-    <div className="space-y-4">
-      {canBid && (
-        <BidForm
-          listingId={listingId}
-          minBid={minBid}
-          currentBid={currentBid}
-          onBidPlaced={(amount) => {
-            // Only update the current bid display; Realtime will add the bid to the list
-            setCurrentBid(amount)
-          }}
-        />
-      )}
+  const activityText =
+    bidCount === 0
+      ? 'No bids yet'
+      : `${bidCount} bid${bidCount === 1 ? '' : 's'}${lastBidAt ? ` · last bid ${formatRelativeTime(lastBidAt)}` : ''}`
 
-      <div>
-        <h3 className="font-semibold mb-2">Recent bids</h3>
-        {bids.length === 0 && <p className="text-sm text-muted-foreground">No bids yet.</p>}
-        <div className="space-y-2">
-          {bids.map((bid) => (
-            <div key={bid.id} className="flex justify-between text-sm">
-              <span>{bid.profiles?.display_name ?? 'Anonymous'}</span>
-              <span className="font-medium">{formatPHP(bid.amount)}</span>
-            </div>
-          ))}
+  const timerPillClass =
+    timerVariant === 'red'
+      ? 'bg-red-600 text-white'
+      : timerVariant === 'amber'
+      ? 'bg-amber-600 text-white'
+      : 'bg-black/60 text-white'
+
+  function handleBidPlaced(amount: number) {
+    setCurrentBid(amount)
+    setBidCount((c) => c + 1)
+    setLastBidAt(new Date().toISOString())
+  }
+
+  return (
+    <>
+      {/* Desktop bid panel */}
+      <div className="hidden md:block bg-card border border-border rounded-xl p-6 space-y-4">
+        {/* Current bid block */}
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <p className="text-xs uppercase tracking-wider text-muted-foreground">Current bid</p>
+            <p className="text-4xl font-black text-foreground">{formatPHP(currentBid)}</p>
+            <p className="text-sm text-muted-foreground mt-1">{activityText}</p>
+          </div>
+          {endsAt && (
+            <TimerPill endsAt={endsAt} pillClass={timerPillClass} showPulse={showPulse} />
+          )}
         </div>
+
+        <div className="border-t border-border" />
+
+        {/* Bid input */}
+        {canBid ? (
+          <BidForm
+            listingId={listingId}
+            minBid={minBid}
+            currentBid={currentBid}
+            onBidPlaced={handleBidPlaced}
+          />
+        ) : (
+          <p className="text-sm text-muted-foreground">Sign in to place a bid.</p>
+        )}
+
+        {/* Seller info */}
+        {sellerName && (
+          <p className="text-sm text-muted-foreground">Sold by {sellerName}</p>
+        )}
       </div>
-    </div>
+
+      {/* Mobile sticky bar */}
+      {status === 'live' && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg px-4 py-3 md:hidden">
+          <div className="flex items-center justify-between mb-2">
+            <div>
+              <p className="text-xs text-muted-foreground uppercase tracking-wider">Current bid</p>
+              <p className="text-lg font-black text-foreground">{formatPHP(currentBid)}</p>
+            </div>
+            {endsAt && (
+              <TimerPill endsAt={endsAt} pillClass={timerPillClass} showPulse={showPulse} />
+            )}
+          </div>
+          {canBid && (
+            <BidFormCompact
+              listingId={listingId}
+              minBid={minBid}
+              currentBid={currentBid}
+              onBidPlaced={handleBidPlaced}
+            />
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
+// ─── Sub-components ───────────────────────────────────────────────────────────
+
+function TimerPill({
+  endsAt,
+  pillClass,
+  showPulse,
+}: {
+  endsAt: string
+  pillClass: string
+  showPulse: boolean
+}) {
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${pillClass}`}>
+      {showPulse && (
+        <span className="w-1.5 h-1.5 rounded-full bg-white [animation:bid-pulse_1.2s_ease-in-out_infinite]" />
+      )}
+      <span suppressHydrationWarning>{formatTimeRemaining(endsAt)}</span>
+    </span>
   )
 }
 
 function BidForm({
-  listingId, minBid, currentBid, onBidPlaced,
+  listingId,
+  minBid,
+  currentBid,
+  onBidPlaced,
 }: {
   listingId: string
   minBid: number
   currentBid: number
-  onBidPlaced: (a: number) => void
+  onBidPlaced: (amount: number) => void
 }) {
   const [amount, setAmount] = useState(String(Math.ceil(minBid)))
   const [confirming, setConfirming] = useState(false)
@@ -117,35 +196,89 @@ function BidForm({
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">Minimum bid: {formatPHP(minBid)}</p>
       <div className="flex gap-2">
-        <input
+        <Input
           type="number"
           value={amount}
-          onChange={(e) => { setAmount(e.target.value); setError('') }}
-          className="border rounded px-3 py-2 flex-1 text-sm"
+          onChange={(e) => { setAmount((e.target as HTMLInputElement).value); setError('') }}
+          className="flex-1"
           min={Math.ceil(minBid)}
           step="1"
         />
-        <button
+        <Button
           type="button"
           onClick={() => setConfirming(true)}
           disabled={Number(amount) < minBid}
-          className="bg-primary text-primary-foreground px-4 py-2 rounded text-sm disabled:opacity-50"
         >
           Place bid
-        </button>
+        </Button>
       </div>
       {error && <p className="text-xs text-destructive">{error}</p>}
       {confirming && (
         <div className="border rounded-lg p-3 bg-muted space-y-2">
           <p className="text-sm font-semibold">Confirm bid of {formatPHP(Number(amount))}?</p>
-          <div className="flex gap-2">
+          <div className="flex gap-2 items-center">
             <button onClick={() => setConfirming(false)} className="text-sm underline">Cancel</button>
-            <button onClick={handleConfirm} disabled={pending} className="bg-primary text-primary-foreground px-3 py-1 rounded text-sm">
+            <Button onClick={handleConfirm} disabled={pending} size="sm">
               {pending ? 'Placing…' : 'Confirm'}
-            </button>
+            </Button>
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function BidFormCompact({
+  listingId,
+  minBid,
+  currentBid,
+  onBidPlaced,
+}: {
+  listingId: string
+  minBid: number
+  currentBid: number
+  onBidPlaced: (amount: number) => void
+}) {
+  const [amount, setAmount] = useState(String(Math.ceil(minBid)))
+  const [pending, setPending] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handlePlace() {
+    if (Number(amount) < minBid) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { placeBid } = await import('@/lib/actions/bids') as any
+    setPending(true)
+    const fd = new FormData()
+    fd.set('listing_id', listingId)
+    fd.set('amount', amount)
+    const result = await placeBid(fd)
+    setPending(false)
+    if (result?.error) { setError(result.error); return }
+    onBidPlaced(Number(amount))
+    setAmount(String(Math.ceil(minBidAmount(Number(amount)))))
+    setError('')
+  }
+
+  return (
+    <div className="space-y-1">
+      <div className="flex gap-2">
+        <Input
+          type="number"
+          value={amount}
+          onChange={(e) => { setAmount((e.target as HTMLInputElement).value); setError('') }}
+          className="flex-1"
+          min={Math.ceil(minBid)}
+          step="1"
+        />
+        <Button
+          type="button"
+          onClick={handlePlace}
+          disabled={Number(amount) < minBid || pending}
+        >
+          {pending ? 'Placing…' : 'Place bid'}
+        </Button>
+      </div>
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   )
 }

@@ -188,7 +188,9 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
         status={listing.status}
         auctioneer_id={listing.auctioneer_id}
         userId={user?.id ?? null}
-        initialBids={recentBids ?? []}
+        bidCount={recentBids?.length ?? 0}
+        lastBidAt={recentBids?.[0]?.created_at ?? null}
+        sellerName={(listing.auctioneer as any)?.display_name ?? null}
       />
     </main>
   )
