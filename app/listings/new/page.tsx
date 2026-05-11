@@ -49,55 +49,66 @@ export default function NewListingPage() {
 
   return (
     <div className="max-w-[1100px] mx-auto px-6 pt-8">
-      {step < 2 ? (
-        <div className="max-w-[640px] mx-auto lg:max-w-none lg:grid lg:grid-cols-[480px_400px] lg:gap-12 lg:justify-center">
-          {/* Left column */}
-          <div>
-            {stepIndicator}
-            {step === 0 && (
-              <>
-                <FeeDisclosureCallout>
-                  Listing fees are non-refundable once your auction goes live.
-                </FeeDisclosureCallout>
-                <DetailsStep
-                  defaultValues={data}
-                  onNext={(values) => { setData((d) => ({ ...d, ...values })); setStep(1) }}
-                  onPreviewChange={setPreviewDraft}
-                />
-              </>
-            )}
-            {step === 1 && (
-              <PhotosStep
-                onBack={() => { setPreviewPhotoUrl(undefined); setStep(0) }}
-                onNext={(photos) => { setData((d) => ({ ...d, photos })); setStep(2) }}
-                onPhotosChange={(urls) => setPreviewPhotoUrl(urls.length > 0 ? urls[0] : undefined)}
+      <div className="max-w-[640px] mx-auto lg:max-w-none lg:grid lg:grid-cols-[480px_400px] lg:gap-12 lg:justify-center">
+        {/* Left column */}
+        <div>
+          {stepIndicator}
+          {step === 0 && (
+            <>
+              <FeeDisclosureCallout>
+                Listing fees are non-refundable once your auction goes live.
+              </FeeDisclosureCallout>
+              <DetailsStep
+                defaultValues={data}
+                onNext={(values) => { setData((d) => ({ ...d, ...values })); setStep(1) }}
+                onPreviewChange={setPreviewDraft}
               />
-            )}
-          </div>
+            </>
+          )}
+          {step === 1 && (
+            <PhotosStep
+              onBack={() => { setPreviewPhotoUrl(undefined); setStep(0) }}
+              onNext={(photos) => {
+                const url = photos[0] ? URL.createObjectURL(photos[0]) : undefined
+                setPreviewPhotoUrl(url)
+                setData((d) => ({ ...d, photos }))
+                setStep(2)
+              }}
+              onPhotosChange={(urls) => setPreviewPhotoUrl(urls.length > 0 ? urls[0] : undefined)}
+            />
+          )}
+          {step === 2 && (
+            <ReviewStep
+              data={data as WizardData}
+              onEditStep={(s) => {
+                if (s <= 1 && previewPhotoUrl) {
+                  URL.revokeObjectURL(previewPhotoUrl)
+                  setPreviewPhotoUrl(undefined)
+                }
+                setStep(s)
+              }}
+            />
+          )}
+        </div>
 
-          {/* Right column — live preview */}
-          <div className="mt-8 lg:mt-0">
-            <div className="lg:sticky lg:top-24">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" aria-hidden="true" />
-                <p className="text-xs text-muted-foreground font-medium">Live preview</p>
-              </div>
-              <ListingPreviewCard {...previewDraft} photoUrl={previewPhotoUrl} />
-              <p className="text-xs text-muted-foreground mt-3 text-center">
-                How your listing appears in the feed
+        {/* Right column — preview persists across all steps */}
+        <div className="mt-8 lg:mt-0">
+          <div className="lg:sticky lg:top-24">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" aria-hidden="true" />
+              <p className="text-xs text-muted-foreground font-medium">
+                {step < 2 ? 'Live preview' : 'Final preview'}
               </p>
             </div>
+            <ListingPreviewCard {...previewDraft} photoUrl={previewPhotoUrl} />
+            <p className="text-xs text-muted-foreground mt-3 text-center">
+              {step < 2
+                ? 'How your listing appears in the feed'
+                : 'This is how your listing will appear to buyers'}
+            </p>
           </div>
         </div>
-      ) : (
-        <div className="max-w-lg mx-auto">
-          {stepIndicator}
-          <ReviewStep
-            data={data as WizardData}
-            onBack={() => setStep(1)}
-          />
-        </div>
-      )}
+      </div>
     </div>
   )
 }
