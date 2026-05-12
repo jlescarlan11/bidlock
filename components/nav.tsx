@@ -27,8 +27,8 @@ export default async function Nav() {
           <>
             <Link href="/#live-auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
             <Link href="/listings/new" className="text-muted-foreground hover:text-foreground transition-colors">Sell</Link>
-            <Link href="/me/listings" className="text-muted-foreground hover:text-foreground transition-colors">My listings</Link>
-            <Link href="/me/bids" className="text-muted-foreground hover:text-foreground transition-colors">My bids</Link>
+            <Link href="/me?tab=listings" className="text-muted-foreground hover:text-foreground transition-colors">My listings</Link>
+            <Link href="/me?tab=bids" className="text-muted-foreground hover:text-foreground transition-colors">My bids</Link>
             <Link href="/me/profile" className="text-muted-foreground hover:text-foreground transition-colors">Profile</Link>
             {isAdmin && <Link href="/admin" className="text-primary hover:text-primary/80 font-semibold transition-colors">Admin</Link>}
             <form action={signOut}>
