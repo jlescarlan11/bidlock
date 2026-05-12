@@ -1,7 +1,9 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect, notFound } from 'next/navigation'
-import ProofForm from './proof-form'
-import Image from 'next/image'
+import { Clock } from 'lucide-react'
+import { PayPageClient } from './pay-page-client'
+import { PaymentDetailsCard } from './payment-details-card'
+import { ProofSubmissionForm } from './proof-submission-form'
 
 export default async function PayPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -31,29 +33,47 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
   if (!settings) {
     return (
       <div className="max-w-md mx-auto p-4 pt-8">
-        <p className="text-destructive font-semibold">Unable to load payment details. Please refresh and try again.</p>
+        <p className="text-destructive font-semibold">
+          Unable to load payment details. Please refresh and try again.
+        </p>
       </div>
     )
   }
 
-  const qrUrl = settings.gcash_qr_url || null
+  const { data: profile } = await db
+    .from('profiles')
+    .select('display_name')
+    .eq('id', user.id)
+    .single()
+
+  const messageValue =
+    (profile?.display_name ?? '').trim() || user.email!.split('@')[0]
 
   return (
-    <div className="max-w-md mx-auto p-4 pt-8 space-y-6">
-      <h1 className="text-2xl font-bold">Pay Listing Fee</h1>
-      <div className="rounded-lg border p-4 space-y-2 text-sm">
-        <p><span className="font-semibold">Listing:</span> {listing.title}</p>
-        <p><span className="font-semibold">Amount:</span> ₱{listing.listing_fee}</p>
-        <p><span className="font-semibold">GCash number:</span> {settings.gcash_number}</p>
-        <p><span className="font-semibold">GCash name:</span> {settings.gcash_name}</p>
-        <p className="text-muted-foreground">Use your BidLock username as the GCash message.</p>
+    <div className="max-w-[1100px] mx-auto px-4 py-8">
+      <div className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 text-xs rounded-full px-3 py-1 mb-4">
+        <Clock size={12} aria-hidden="true" />
+        Payment pending
       </div>
-      {qrUrl && (
-        <div className="flex justify-center">
-          <Image src={qrUrl} alt="GCash QR code" width={200} height={200} className="rounded-lg" />
-        </div>
-      )}
-      <ProofForm listingId={listing.id} />
+
+      <h1 className="text-2xl font-bold mb-6">Pay Listing Fee</h1>
+
+      <PayPageClient
+        gcashNumber={settings.gcash_number}
+        left={
+          <PaymentDetailsCard
+            listingTitle={listing.title}
+            listingFee={listing.listing_fee}
+            gcashQrUrl={settings.gcash_qr_url ?? null}
+            gcashNumber={settings.gcash_number}
+            gcashName={settings.gcash_name}
+            messageValue={messageValue}
+          />
+        }
+        right={
+          <ProofSubmissionForm listingId={listing.id} messageValue={messageValue} />
+        }
+      />
     </div>
   )
 }
