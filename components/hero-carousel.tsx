@@ -60,6 +60,12 @@ export default function HeroCarousel({ listings }: { listings: CarouselListing[]
         <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
         <p className="font-semibold text-foreground mb-1">No live auctions yet</p>
         <p className="text-sm text-muted-foreground">Be the first to list something!</p>
+        <p className="text-sm text-muted-foreground mt-3">
+          Got something to sell?{' '}
+          <Link href="/listings/new" className="text-primary underline underline-offset-2">
+            Create a listing →
+          </Link>
+        </p>
       </div>
     )
   }
