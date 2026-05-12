@@ -84,12 +84,12 @@ export default async function AuctionsPage({
       <div className="mb-6">
         <h1 className="text-2xl font-black text-foreground">Live Auctions</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {count ?? 0} {(count ?? 0) === 1 ? 'item' : 'items'} ending soon
+          {count ?? 0} live {(count ?? 0) === 1 ? 'auction' : 'auctions'}
         </p>
       </div>
 
       <div className="mb-6">
-        <Suspense>
+        <Suspense fallback={<div className="h-9 w-full animate-pulse rounded-lg bg-muted" />}>
           <AuctionControls q={q} sort={sort as 'ending_soon' | 'newest' | 'lowest_bid' | 'highest_bid'} />
         </Suspense>
       </div>
@@ -97,13 +97,22 @@ export default async function AuctionsPage({
       {listings.length === 0 ? (
         <div className="py-20 text-center">
           <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
-          <p className="font-bold text-foreground mb-1">No auctions match your search.</p>
-          <Link
-            href="/auctions"
-            className="text-primary text-sm font-medium mt-2 inline-block hover:underline"
-          >
-            Clear filters
-          </Link>
+          {q ? (
+            <>
+              <p className="font-bold text-foreground mb-1">No auctions match your search.</p>
+              <Link
+                href="/auctions"
+                className="text-primary text-sm font-medium mt-2 inline-block hover:underline"
+              >
+                Clear filters
+              </Link>
+            </>
+          ) : (
+            <>
+              <p className="font-bold text-foreground mb-1">No live auctions right now.</p>
+              <p className="text-sm text-muted-foreground mt-1">Check back soon — new items drop daily.</p>
+            </>
+          )}
         </div>
       ) : (
         <>
