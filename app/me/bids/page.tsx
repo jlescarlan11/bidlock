@@ -32,7 +32,7 @@ export default async function MyBidsPage() {
 
   const bidsWithThumbs = deduped.map((bid: any) => {
     const photos: any[] = bid.listings?.listing_photos ?? []
-    const firstPhoto = photos.sort((a: any, b: any) => a.display_order - b.display_order)[0]
+    const firstPhoto = [...photos].sort((a: any, b: any) => a.display_order - b.display_order)[0]
     const thumbnailUrl = firstPhoto
       ? supabase.storage.from('listing-photos').getPublicUrl(firstPhoto.storage_path).data.publicUrl
       : null
