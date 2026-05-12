@@ -77,7 +77,7 @@ export default function HowItWorksPage() {
             href="/auctions"
             className="self-start inline-flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-full text-sm font-bold hover:bg-gray-100 transition-colors"
           >
-            Browse live auctions →
+            Browse live auctions <span aria-hidden="true">→</span>
           </Link>
         </div>
         <div className="bg-orange-500 text-white rounded-3xl p-8 flex flex-col gap-4">
@@ -87,7 +87,7 @@ export default function HowItWorksPage() {
             href="/listings/new"
             className="self-start inline-flex items-center gap-2 bg-white text-orange-600 px-6 py-3 rounded-full text-sm font-bold hover:bg-orange-50 transition-colors"
           >
-            List an item →
+            List an item <span aria-hidden="true">→</span>
           </Link>
         </div>
       </div>
