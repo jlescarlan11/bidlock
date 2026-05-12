@@ -42,7 +42,7 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
 
   const { data: profile, error: profileError } = await db
     .from('profiles')
-    .select('display_name')
+    .select('username')
     .eq('id', user.id)
     .single()
   if (profileError && process.env.NODE_ENV === 'development') {
@@ -50,7 +50,7 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
   }
 
   const messageValue =
-    (profile?.display_name ?? '').trim() || (user.email?.split('@')[0] ?? 'user')
+    (profile?.username ?? '').trim() || (user.email?.split('@')[0] ?? 'user')
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">

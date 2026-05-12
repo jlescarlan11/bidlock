@@ -28,15 +28,16 @@ export default function SignupPage() {
 
         <form action={action} className="space-y-4">
           <div className="space-y-1.5">
-            <Label htmlFor="display_name" className="text-sm font-medium text-foreground">Display name</Label>
+            <Label htmlFor="username" className="text-sm font-medium text-foreground">Username</Label>
             <Input
-              id="display_name"
-              name="display_name"
+              id="username"
+              name="username"
               type="text"
-              autoComplete="name"
+              autoComplete="username"
               required
               className="h-11 rounded-lg border-border bg-card focus-visible:ring-2 focus-visible:ring-ring/20 focus-visible:border-primary transition-colors duration-150"
             />
+            <p className="text-xs text-muted-foreground">3–20 characters. Letters, numbers, underscores only.</p>
           </div>
 
           <div className="space-y-1.5">

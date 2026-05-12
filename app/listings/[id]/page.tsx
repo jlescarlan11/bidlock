@@ -60,8 +60,8 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
       id, title, description, current_bid, starts_at, ends_at, status,
       winner_id, auctioneer_id, starting_bid,
       listing_photos (storage_path, display_order),
-      auctioneer:profiles!auctioneer_id (display_name),
-      winner:profiles!winner_id (display_name)
+      auctioneer:profiles!auctioneer_id (username),
+      winner:profiles!winner_id (username)
     `)
     .eq('id', id)
     .in('status', ['live', 'ended'])
@@ -79,7 +79,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
   const { data: recentBids } = await db
     .from('bids')
-    .select('id, amount, created_at, bidder_id, profiles!bidder_id(display_name)')
+    .select('id, amount, created_at, bidder_id, profiles!bidder_id(username)')
     .eq('listing_id', id)
     .order('created_at', { ascending: false })
     .limit(20)
@@ -115,13 +115,13 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     sellerContact = sc
   }
 
-  let initialMessages: { id: string; body: string; created_at: string; sender_id: string; profiles: { display_name: string | null } | null }[] = []
+  let initialMessages: { id: string; body: string; created_at: string; sender_id: string; profiles: { username: string | null } | null }[] = []
   let recipientId: string | null = null
 
   if (showChat && user) {
     const { data: msgs } = await db
       .from('messages')
-      .select('id, body, created_at, sender_id, profiles!sender_id(display_name)')
+      .select('id, body, created_at, sender_id, profiles!sender_id(username)')
       .eq('listing_id', id)
       .order('created_at', { ascending: true })
     initialMessages = msgs ?? []
@@ -144,15 +144,15 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     rateeId = isAuctioneer ? listing.winner_id : listing.auctioneer_id
     rateeName = isAuctioneer
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ? (listing.winner as any)?.display_name
+      ? (listing.winner as any)?.username
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      : (listing.auctioneer as any)?.display_name
+      : (listing.auctioneer as any)?.username
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const sellerName: string | null = (listing.auctioneer as any)?.display_name ?? null
+  const sellerName: string | null = (listing.auctioneer as any)?.username ?? null
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const winnerName: string | null = (listing.winner as any)?.display_name ?? null
+  const winnerName: string | null = (listing.winner as any)?.username ?? null
 
   const contactDisplay = (showChat && listing.winner_id !== null)
     ? resolveContactDisplay(isAuctioneer, winnerContact, sellerContact)

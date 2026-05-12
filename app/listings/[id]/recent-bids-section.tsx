@@ -10,7 +10,7 @@ type Bid = {
   amount: number
   created_at: string
   bidder_id: string
-  profiles: { display_name: string | null } | null
+  profiles: { username: string | null } | null
 }
 
 type Props = {
@@ -71,7 +71,7 @@ export default function RecentBidsSection({
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-foreground">
-                      {bid.profiles?.display_name ?? 'Anonymous'}
+                      {bid.profiles?.username ? '@' + bid.profiles.username : 'Anonymous'}
                     </span>
                     {isMe && (
                       <span className="bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full font-medium">

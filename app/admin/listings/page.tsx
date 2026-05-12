@@ -12,7 +12,7 @@ export default async function AdminListingsPage() {
     .from('listings')
     .select(`
       id, title, listing_fee, payment_reference, created_at,
-      profiles!auctioneer_id (display_name, phone_number)
+      profiles!auctioneer_id (username, phone_number)
     `)
     .eq('status', 'awaiting_review')
     .order('created_at', { ascending: true })
@@ -30,7 +30,7 @@ export default async function AdminListingsPage() {
               <div>
                 <p className="font-semibold">{listing.title}</p>
                 <p className="text-sm text-muted-foreground">
-                  by {listing.profiles?.display_name} · {listing.profiles?.phone_number}
+                  by {listing.profiles?.username ? '@' + listing.profiles.username : '—'} · {listing.profiles?.phone_number}
                 </p>
                 <p className="text-sm">Fee: {formatPHP(listing.listing_fee)} · Ref: {listing.payment_reference}</p>
               </div>

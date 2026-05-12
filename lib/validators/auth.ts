@@ -8,7 +8,8 @@ export const loginSchema = z.object({
 export const signupSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8),
-  display_name: z.string().min(2).max(60),
+  username: z.string().trim().toLowerCase()
+    .regex(/^[a-z0-9_]{3,20}$/, 'Username must be 3–20 characters: letters, numbers, underscores only'),
 })
 
 export type LoginInput = z.infer<typeof loginSchema>

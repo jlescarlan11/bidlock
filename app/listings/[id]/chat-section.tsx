@@ -11,7 +11,7 @@ type Message = {
   body: string
   created_at: string
   sender_id: string
-  profiles: { display_name: string | null } | null
+  profiles: { username: string | null } | null
 }
 
 type Props = {

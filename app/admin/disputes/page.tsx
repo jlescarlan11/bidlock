@@ -23,8 +23,8 @@ export default async function AdminDisputesPage() {
     .from('disputes')
     .select(`
       id, reason, status, admin_note, created_at,
-      reporter:profiles!reporter_id (display_name),
-      reported:profiles!reported_user_id (display_name, strike_count),
+      reporter:profiles!reporter_id (username),
+      reported:profiles!reported_user_id (username, strike_count),
       listings (title)
     `)
     .eq('status', 'open')
@@ -41,8 +41,8 @@ export default async function AdminDisputesPage() {
               <div className="space-y-1">
                 <p className="font-semibold text-sm">{d.listings?.title}</p>
                 <p className="text-xs text-muted-foreground">
-                  Reporter: {d.reporter?.display_name} →{' '}
-                  Reported: {d.reported?.display_name} (strikes: {d.reported?.strike_count})
+                  Reporter: {d.reporter?.username ? '@' + d.reporter.username : '—'} →{' '}
+                  Reported: {d.reported?.username ? '@' + d.reported.username : '—'} (strikes: {d.reported?.strike_count})
                 </p>
                 <p className="text-sm">{d.reason}</p>
               </div>

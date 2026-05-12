@@ -29,7 +29,7 @@ export async function signup(
   const parsed = signupSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
-    display_name: formData.get('display_name'),
+    username: formData.get('username'),
   })
   if (!parsed.success) return { error: 'Please check your inputs.' }
 
@@ -38,7 +38,7 @@ export async function signup(
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { full_name: parsed.data.display_name },
+      data: { username: parsed.data.username },
       emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
     },
   })

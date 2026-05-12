@@ -8,12 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 type Props = {
-  profile: { display_name: string | null; phone_number: string | null; gcash_name: string | null } | null
+  profile: { username: string | null; phone_number: string | null; gcash_name: string | null } | null
 }
 
 export default function ProfileForm({ profile }: Props) {
   const [state, action, pending] = useActionState(upsertProfile, undefined)
-  const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
+  const [username, setUsername] = useState(profile?.username ?? '')
   const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number ?? '')
   const [gcashName, setGcashName] = useState(profile?.gcash_name ?? '')
 
@@ -25,8 +25,9 @@ export default function ProfileForm({ profile }: Props) {
   return (
     <form action={action} className="space-y-4">
       <div className="space-y-1">
-        <Label htmlFor="display_name">Display name</Label>
-        <Input id="display_name" name="display_name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
+        <Label htmlFor="username">Username</Label>
+        <Input id="username" name="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
+        <p className="text-xs text-muted-foreground">3–20 characters. Letters, numbers, underscores only.</p>
       </div>
       <div className="space-y-1">
         <Label htmlFor="phone_number">Phone number</Label>

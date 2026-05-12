@@ -27,12 +27,12 @@ export default async function AdminUsersPage({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let query: any = db
     .from('profiles')
-    .select('id, display_name, phone_number, strike_count, permabanned, banned_until, created_at')
+    .select('id, username, phone_number, strike_count, permabanned, banned_until, created_at')
     .order('created_at', { ascending: false })
     .limit(50)
 
   if (q) {
-    query = query.ilike('display_name', `%${q}%`)
+    query = query.ilike('username', `%${q}%`)
   }
 
   const { data: users } = await query
@@ -44,7 +44,7 @@ export default async function AdminUsersPage({
         <input
           name="q"
           defaultValue={q}
-          placeholder="Search by display name…"
+          placeholder="Search by username…"
           className="border rounded px-3 py-2 text-sm w-full max-w-xs"
         />
       </form>
@@ -55,7 +55,7 @@ export default async function AdminUsersPage({
           return (
             <div key={u.id} className="border rounded-lg p-4 flex justify-between items-start gap-3">
               <div className="space-y-1">
-                <p className="font-semibold">{u.display_name}</p>
+                <p className="font-semibold">{u.username ? '@' + u.username : '—'}</p>
                 <p className="text-xs text-muted-foreground">{u.phone_number}</p>
                 <p className="text-xs">Strikes: {u.strike_count}</p>
                 {u.banned_until && !u.permabanned && (

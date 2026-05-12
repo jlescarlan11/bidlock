@@ -2,11 +2,6 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import ProfileForm from './profile-form'
 
-function getInitials(name: string | null): string {
-  if (!name?.trim()) return '?'
-  return name.trim().split(/\s+/).slice(0, 2).map(w => w[0].toUpperCase()).join('')
-}
-
 function formatMemberSince(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
 }
@@ -20,7 +15,7 @@ export default async function ProfilePage() {
   const db = supabase as any
   const { data: profile, error: profileError } = await db
     .from('profiles')
-    .select('display_name, phone_number, gcash_name')
+    .select('username, phone_number, gcash_name')
     .eq('id', user.id)
     .maybeSingle()
 
@@ -29,7 +24,7 @@ export default async function ProfilePage() {
     throw new Error('Failed to load profile. Please refresh.')
   }
 
-  const initials = getInitials(profile?.display_name ?? null)
+  const initials = (profile?.username ?? '?').slice(0, 2).toUpperCase()
   const memberSince = formatMemberSince(user.created_at ?? new Date().toISOString())
 
   return (
@@ -40,7 +35,7 @@ export default async function ProfilePage() {
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-white text-xl font-bold tracking-tight">{initials}</span>
           </div>
-          <p className="text-sm font-semibold text-foreground mb-1">{profile?.display_name ?? '—'}</p>
+          <p className="text-sm font-semibold text-foreground mb-1">{profile?.username ? '@' + profile.username : '—'}</p>
           <span className="inline-block text-xs font-semibold text-primary bg-primary/10 rounded px-2 py-0.5">
             Member
           </span>
@@ -57,7 +52,7 @@ export default async function ProfilePage() {
           <div className="mb-6">
             <h1 className="text-lg font-bold text-foreground">Your Profile</h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Update your display name, phone, and GCash details.
+              Update your username, phone, and GCash details.
             </p>
           </div>
           <ProfileForm profile={profile} />

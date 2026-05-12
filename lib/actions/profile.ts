@@ -13,7 +13,7 @@ export async function upsertProfile(
   if (!user) return { error: 'Not authenticated.' }
 
   const parsed = profileSchema.safeParse({
-    display_name: formData.get('display_name'),
+    username: formData.get('username'),
     phone_number: formData.get('phone_number'),
     gcash_name: formData.get('gcash_name'),
   })
