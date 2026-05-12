@@ -24,19 +24,16 @@ function formatBytes(bytes: number): string {
 
 export function ProofSubmissionForm({ listingId, messageValue }: ProofSubmissionFormProps) {
   const storageKey = `bidlock-pay-${listingId}`
-  const [referenceNumber, setReferenceNumber] = useState('')
+  const [referenceNumber, setReferenceNumber] = useState(() => {
+    if (typeof window === 'undefined') return ''
+    return localStorage.getItem(`bidlock-pay-${listingId}`) ?? ''
+  })
   const [file, setFile] = useState<File | null>(null)
   const [referenceError, setReferenceError] = useState<string | null>(null)
   const [fileError, setFileError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [state, action, pending] = useActionState(submitPaymentProof, undefined)
-
-  // Restore reference number from localStorage on mount
-  useEffect(() => {
-    const saved = localStorage.getItem(storageKey)
-    if (saved) setReferenceNumber(saved)
-  }, [storageKey])
 
   // Sync reference number to localStorage on change
   useEffect(() => {
@@ -49,9 +46,9 @@ export function ProofSubmissionForm({ listingId, messageValue }: ProofSubmission
   }, [state])
 
   const applyFile = (f: File | undefined) => {
+    setFileError(null)
     if (!f) return
     setFile(f)
-    setFileError(null)
   }
 
   const validate = (): boolean => {
@@ -138,6 +135,15 @@ export function ProofSubmissionForm({ listingId, messageValue }: ProofSubmission
             onChange={(e) => applyFile(e.target.files?.[0])}
           />
           <div
+            role="button"
+            tabIndex={0}
+            aria-label="Upload payment screenshot"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                fileInputRef.current?.click()
+              }
+            }}
             className={cn(
               'border-2 border-dashed rounded-md p-4 cursor-pointer transition-colors',
               isDragging ? 'border-purple-400 bg-purple-50' : 'border-gray-300',
@@ -178,7 +184,7 @@ export function ProofSubmissionForm({ listingId, messageValue }: ProofSubmission
               <div className="flex flex-col items-center gap-1.5 text-muted-foreground">
                 <Upload size={20} />
                 <p className="text-sm">Choose a file or drag and drop</p>
-                <p className="text-xs">JPG, PNG, max 5MB</p>
+                <p className="text-xs">JPG, PNG, WebP, max 5MB</p>
               </div>
             )}
           </div>
@@ -220,7 +226,7 @@ export function ProofSubmissionForm({ listingId, messageValue }: ProofSubmission
           <span>
             Wrong amount or missed the message?{' '}
             {/* TODO: wire to support feature */}
-            <a href="#" className="underline">
+            <a href="#support" className="underline">
               Contact support
             </a>
           </span>
