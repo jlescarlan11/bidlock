@@ -78,6 +78,7 @@
   --font-sans:    var(--font-inter);
   --font-mono:    var(--font-geist-mono);
   --font-display: var(--font-bricolage);
+  --font-heading: var(--font-bricolage);
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
