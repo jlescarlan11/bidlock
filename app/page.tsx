@@ -1,35 +1,41 @@
 import { createClient } from '@/lib/supabase/server'
 import ListingCard from '@/components/listing-card'
 import LandingHero from '@/components/landing-hero'
+import Link from 'next/link'
 
 export default async function HomePage() {
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
 
-  const { data: rawListings } = await db
-    .from('listings')
-    .select('id, title, current_bid, ends_at, listing_photos(storage_path, display_order), bids(created_at)')
-    .eq('status', 'live')
-    .order('ends_at', { ascending: true })
-
-  const liveIds = (rawListings ?? []).map((l: any) => l.id)
-
+  // Fetch teaser listings and all live IDs for stats in parallel
   const [
+    { data: rawTeaser },
+    { data: allLive },
     { count: itemsSold },
-    { data: totalSoldResult },
-    { count: activeBids },
+    { data: soldListings },
   ] = await Promise.all([
+    db
+      .from('listings')
+      .select('id, title, current_bid, ends_at, listing_photos(storage_path, display_order), bids(created_at)')
+      .eq('status', 'live')
+      .order('ends_at', { ascending: true })
+      .limit(4),
+    db.from('listings').select('id').eq('status', 'live'),
     db.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'ended').not('winner_id', 'is', null),
-    db.rpc('get_total_sold_amount'),
-    liveIds.length > 0
-      ? db.from('bids').select('id', { count: 'exact', head: true }).in('listing_id', liveIds)
-      : Promise.resolve({ count: 0, data: null, error: null }),
+    db.from('listings').select('current_bid').eq('status', 'ended').not('winner_id', 'is', null),
   ])
 
-  const totalSold = Number(totalSoldResult ?? 0)
+  const liveIds = (allLive ?? []).map((l: any) => l.id)
 
-  const listings = (rawListings ?? []).map((listing: any) => {
+  const { count: activeBids } = liveIds.length > 0
+    ? await db.from('bids').select('id', { count: 'exact', head: true }).in('listing_id', liveIds)
+    : { count: 0 }
+
+  const totalSold = (soldListings ?? []).reduce((sum: number, l: any) => sum + Number(l.current_bid), 0)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const teaserListings = (rawTeaser ?? []).map((listing: any) => {
     const bidRows: { created_at: string }[] = listing.bids ?? []
     const bid_count = bidRows.length
     const last_bid_at =
@@ -61,11 +67,11 @@ export default async function HomePage() {
   return (
     <main>
       <div className="min-h-[calc(100vh-3.5rem)] flex flex-col">
-        <LandingHero listings={listings} stats={stats} />
+        <LandingHero stats={stats} />
 
         {/* Trust strip */}
         <div className="py-4">
-          <div className="max-w-7xl mx-auto px-6 flex justify-center flex-wrap gap-x-8 gap-y-2">
+          <div className="max-w-7xl mx-auto px-6 flex justify-center flex-wrap gap-x-8 gap-y-2 opacity-50">
             {[
               { emoji: '🔒', label: 'Secure GCash payments' },
               { emoji: '🇵🇭', label: 'PH-verified sellers' },
@@ -79,6 +85,32 @@ export default async function HomePage() {
           </div>
         </div>
       </div>
+
+      {/* Live right now teaser */}
+      <section className="max-w-7xl mx-auto px-6 py-10">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-black text-foreground">Live right now</h2>
+          <Link
+            href="/auctions"
+            className="text-sm font-semibold text-primary hover:text-primary/80 transition-colors"
+          >
+            Browse all auctions <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+        {teaserListings.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
+            <p className="font-bold text-foreground mb-1">No live auctions right now</p>
+            <p className="text-sm text-muted-foreground">Check back soon — new items drop daily.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {teaserListings.map((listing: any) => (
+              <ListingCard key={listing.id} listing={listing} />
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Reassurance — "Before you bid" */}
       <section className="max-w-7xl mx-auto px-6 py-16">
@@ -102,7 +134,7 @@ export default async function HomePage() {
             },
             {
               icon: '📦',
-              title: 'Win? Pay typically within 24 hours.',
+              title: 'Win? Pay in 24 hours.',
               body: 'Quick GCash transfer, seller ships, item arrives. Simple as that.',
             },
           ].map(({ icon, title, body }) => (
@@ -112,32 +144,6 @@ export default async function HomePage() {
               <p className="text-sm text-muted-foreground leading-relaxed">{body}</p>
             </div>
           ))}
-        </div>
-      </section>
-
-      {/* Live auctions grid — anchor target for hero CTA */}
-      <section id="live-auctions" className="max-w-7xl mx-auto px-6 pb-16">
-        <div className="border-t border-border pt-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-black text-foreground flex items-center gap-3">
-              Live Auctions
-              <span className="bg-orange-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full tracking-wide">
-                LIVE
-              </span>
-            </h2>
-          </div>
-          {!listings.length && (
-            <div className="text-center py-16">
-              <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
-              <p className="font-bold text-foreground mb-1">No live auctions right now</p>
-              <p className="text-sm text-muted-foreground">Check back soon — new items drop daily.</p>
-            </div>
-          )}
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {listings.map((listing: any) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))}
-          </div>
         </div>
       </section>
     </main>
