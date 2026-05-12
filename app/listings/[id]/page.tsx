@@ -8,6 +8,8 @@ import RecentBidsSection from './recent-bids-section'
 import ChatSection from './chat-section'
 import RatingForm from './rating-form'
 import DisputeForm from './dispute-form'
+import Link from 'next/link'
+import { resolveContactDisplay } from '@/lib/contact-display'
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
@@ -102,6 +104,16 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
     winnerContact = wc
   }
 
+  let sellerContact: { phone_number: string | null; gcash_name: string | null } | null = null
+  if (isWinner && listing.status === 'ended') {
+    const { data: sc } = await db
+      .from('profiles')
+      .select('phone_number, gcash_name')
+      .eq('id', listing.auctioneer_id)
+      .single()
+    sellerContact = sc
+  }
+
   let initialMessages: { id: string; body: string; created_at: string; sender_id: string; profiles: { display_name: string | null } | null }[] = []
   let recipientId: string | null = null
 
@@ -141,6 +153,10 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const winnerName: string | null = (listing.winner as any)?.display_name ?? null
 
+  const contactDisplay = (showChat && listing.winner_id !== null)
+    ? resolveContactDisplay(isAuctioneer, winnerContact, sellerContact)
+    : null
+
   return (
     <main className="max-w-7xl mx-auto px-6 py-8 pb-32 md:pb-8">
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 items-start">
@@ -170,21 +186,30 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
           {/* Ended-auction UI */}
           {showChat && listing.winner_id !== null && (
-            <div className="border rounded-lg p-4 space-y-2">
-              <p className="font-semibold">Contact Information</p>
-              <p className="text-xs text-muted-foreground">
+            <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+              <h2 className="text-lg font-bold">Contact Information</h2>
+              <p className="text-sm text-muted-foreground">
                 Coordinate delivery and final payment directly. We do not handle either. Report violations via the dispute form.
               </p>
-              {isAuctioneer && (
-                <div className="text-sm space-y-1">
-                  <p><span className="font-medium">Winner&apos;s phone:</span> {winnerContact?.phone_number}</p>
-                  <p><span className="font-medium">Winner&apos;s GCash name:</span> {winnerContact?.gcash_name}</p>
+              {contactDisplay && (
+                <div className="text-sm space-y-2">
+                  <p>
+                    <span className="font-medium">{contactDisplay.label} — Phone:</span>{' '}
+                    {contactDisplay.phone ?? 'Not provided'}
+                  </p>
+                  <p>
+                    <span className="font-medium">GCash name:</span>{' '}
+                    {contactDisplay.gcash ?? 'Not provided'}
+                  </p>
                 </div>
               )}
               {isWinner && (
-                <div className="text-sm space-y-1">
-                  <p>Get the auctioneer&apos;s contact by visiting your bids page.</p>
-                </div>
+                <Link
+                  href={`/listings/${id}/pay`}
+                  className="inline-flex items-center justify-center w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
+                >
+                  Pay Now →
+                </Link>
               )}
             </div>
           )}
