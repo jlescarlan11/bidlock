@@ -19,8 +19,8 @@ export default function VerifyEmailPage() {
 
   useEffect(() => {
     if (cooldown <= 0) return
-    const id = setInterval(() => setCooldown((s) => s - 1), 1000)
-    return () => clearInterval(id)
+    const id = setTimeout(() => setCooldown((s) => s - 1), 1000)
+    return () => clearTimeout(id)
   }, [cooldown])
 
   // Restart cooldown after a successful resend
