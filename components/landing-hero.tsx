@@ -8,16 +8,8 @@ type HeroStats = {
 
 export default function LandingHero({ stats }: { stats: HeroStats }) {
   return (
-    <section className="relative overflow-hidden bg-[#FDFBF6]">
-      {/* Dot-grid decoration */}
-      <div
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
-        style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}
-        aria-hidden="true"
-      />
-
-      <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-12">
-        <h1 className="display text-6xl lg:text-8xl font-extrabold leading-[0.95] mb-6 text-gray-900">
+    <div>
+      <h1 className="display text-6xl lg:text-8xl font-extrabold leading-[0.95] mb-6 text-gray-900">
           Going once.<br />
           Going twice.<br />
           <span className="relative inline-block">
@@ -79,6 +71,6 @@ export default function LandingHero({ stats }: { stats: HeroStats }) {
           </div>
         </div>
       </div>
-    </section>
+    </div>
   )
 }
