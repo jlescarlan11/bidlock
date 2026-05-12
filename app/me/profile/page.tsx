@@ -41,7 +41,7 @@ export default async function ProfilePage() {
             <span className="text-white text-xl font-bold tracking-tight">{initials}</span>
           </div>
           <p className="text-sm font-semibold text-foreground mb-1">{profile?.display_name ?? '—'}</p>
-          <span className="inline-block text-xs font-semibold text-primary bg-primary/10 rounded px-2 py-0.5 mb-4">
+          <span className="inline-block text-xs font-semibold text-primary bg-primary/10 rounded px-2 py-0.5">
             Member
           </span>
           <div className="border-t border-border my-4" />
