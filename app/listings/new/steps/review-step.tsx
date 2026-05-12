@@ -61,6 +61,7 @@ export default function ReviewStep({ data, onEditStep }: Props) {
       formData.set('duration_days', String(data.duration_days))
       data.photos.forEach((f) => formData.append('photos', f))
 
+      sessionStorage.removeItem('bidlock:new-listing-draft')
       const result = await createListing(undefined, formData)
       if (result?.error) toast.error(result.error)
     })

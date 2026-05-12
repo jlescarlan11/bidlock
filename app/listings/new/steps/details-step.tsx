@@ -25,7 +25,7 @@ type Props = {
 
 export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<ListingDetailsInput>({
+  const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<ListingDetailsInput>({
     resolver: zodResolver(listingDetailsSchema) as any,
     defaultValues: { duration_days: 3, ...defaultValues },
   })
@@ -40,6 +40,30 @@ export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: 
 
   const onPreviewChangeRef = useRef(onPreviewChange)
   useEffect(() => { onPreviewChangeRef.current = onPreviewChange })
+
+  // Restore draft from sessionStorage on mount
+  useEffect(() => {
+    const raw = sessionStorage.getItem('bidlock:new-listing-draft')
+    if (!raw) return
+    try {
+      const saved = JSON.parse(raw)
+      reset({ ...{ duration_days: 3, ...defaultValues }, ...saved })
+    } catch { /* ignore corrupt draft */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Save draft to sessionStorage on change (debounced 500ms)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      sessionStorage.setItem('bidlock:new-listing-draft', JSON.stringify({
+        title:        watchedTitle,
+        description:  watchedDescription,
+        starting_bid: watchedBid,
+        duration_days: watchedDuration,
+      }))
+    }, 500)
+    return () => clearTimeout(timeout)
+  }, [watchedTitle, watchedDescription, watchedBid, watchedDuration])
 
   useEffect(() => {
     onPreviewChangeRef.current?.({
