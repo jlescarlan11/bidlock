@@ -33,6 +33,7 @@ export default function AdminTabBar() {
               key={tab.href}
               href={tab.href}
               ref={isActive ? activeRef : undefined}
+              aria-current={isActive ? 'page' : undefined}
               className={`shrink-0 px-4 py-3 text-sm border-b-2 transition-colors ${
                 isActive
                   ? 'border-primary text-primary font-semibold'
