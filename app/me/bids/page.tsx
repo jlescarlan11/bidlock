@@ -53,10 +53,11 @@ function BidCard({
     subtitle = remaining === 'Ended' ? 'Ended' : `Ends in ${remaining}`
   } else {
     const endedDate = formatEndedDate(listing.ends_at)
+    const endedPrefix = endedDate ? `Ended ${endedDate}` : 'Ended'
     if (!isWon && listing.winner_id !== null) {
-      subtitle = `Ended ${endedDate} · Sold for ${formatPHP(listing.current_bid)}`
+      subtitle = `${endedPrefix} · Sold for ${formatPHP(listing.current_bid)}`
     } else {
-      subtitle = `Ended ${endedDate}`
+      subtitle = endedPrefix
     }
   }
 
@@ -194,9 +195,9 @@ function Section({
 }) {
   return (
     <div>
-      <p className="mb-2.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+      <h2 className="mb-2.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
         {title} · {items.length}
-      </p>
+      </h2>
       {items.length === 0 ? (
         <p className="text-sm text-muted-foreground">No {title.toLowerCase()} auctions yet.</p>
       ) : (
