@@ -40,14 +40,17 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
     )
   }
 
-  const { data: profile } = await db
+  const { data: profile, error: profileError } = await db
     .from('profiles')
     .select('display_name')
     .eq('id', user.id)
     .single()
+  if (profileError && process.env.NODE_ENV === 'development') {
+    console.warn('[PayPage] profiles query failed:', profileError.message)
+  }
 
   const messageValue =
-    (profile?.display_name ?? '').trim() || user.email!.split('@')[0]
+    (profile?.display_name ?? '').trim() || (user.email?.split('@')[0] ?? 'user')
 
   return (
     <div className="max-w-[1100px] mx-auto px-4 py-8">
@@ -63,7 +66,7 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
         left={
           <PaymentDetailsCard
             listingTitle={listing.title}
-            listingFee={listing.listing_fee}
+            listingFee={Number(listing.listing_fee)}
             gcashQrUrl={settings.gcash_qr_url ?? null}
             gcashNumber={settings.gcash_number}
             gcashName={settings.gcash_name}
