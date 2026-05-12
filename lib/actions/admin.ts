@@ -214,7 +214,7 @@ export async function updateSettings(formData: FormData) {
     updates.gcash_qr_url = supabase.storage.from('listing-photos').getPublicUrl('admin/gcash-qr.png').data.publicUrl
   }
 
-  const { error } = await db.from('settings').update(updates).eq('id', 1)
+  const { error } = await db.from('settings').upsert({ id: 1, ...updates }, { onConflict: 'id' })
   if (error) return { error: error.message }
 
   revalidatePath('/admin/settings')
