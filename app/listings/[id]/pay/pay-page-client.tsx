@@ -17,7 +17,8 @@ export function PayPageClient({ gcashNumber, left, right }: PayPageClientProps) 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Observe the sentinel at the bottom of the left column.
-  // When it exits the viewport, the payment details card is fully scrolled past.
+  // The sentinel is zero-height, so threshold:0 fires when it fully enters/exits
+  // the viewport — which happens when the payment details card is fully scrolled past.
   useEffect(() => {
     const sentinel = sentinelRef.current
     if (!sentinel) return
@@ -46,8 +47,9 @@ export function PayPageClient({ gcashNumber, left, right }: PayPageClientProps) 
       el.style.opacity = '0'
       document.body.appendChild(el)
       el.select()
-      document.execCommand('copy')
+      const success = document.execCommand('copy')
       document.body.removeChild(el)
+      if (!success) throw new Error('execCommand copy failed')
     }
     setCopied(true)
     timerRef.current = setTimeout(() => setCopied(false), 1500)
@@ -63,6 +65,7 @@ export function PayPageClient({ gcashNumber, left, right }: PayPageClientProps) 
             variant="ghost"
             size="sm"
             className="text-xs gap-1 shrink-0"
+            aria-label={copied ? 'Copied GCash number' : 'Copy GCash number'}
             onClick={handleCopy}
           >
             {copied ? (
