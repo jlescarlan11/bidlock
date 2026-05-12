@@ -47,9 +47,9 @@ export default async function ProfilePage() {
           <div className="border-t border-border my-4" />
           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Member since</p>
           <p className="text-sm text-muted-foreground mb-4">{memberSince}</p>
-          <a href="#" className="text-sm font-medium text-primary hover:text-primary/80 transition-colors">
+          <span className="text-sm font-medium text-muted-foreground/50 cursor-not-allowed select-none">
             View public profile →
-          </a>
+          </span>
         </div>
 
         {/* Form card */}
