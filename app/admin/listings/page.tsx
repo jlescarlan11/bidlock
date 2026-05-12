@@ -18,7 +18,7 @@ export default async function AdminListingsPage() {
     .order('created_at', { ascending: true })
 
   return (
-    <div className="max-w-3xl mx-auto p-4 pt-8">
+    <div>
       <h1 className="text-2xl font-bold mb-6">Review Queue</h1>
       {!listings?.length && (
         <p className="text-muted-foreground">No listings awaiting review.</p>

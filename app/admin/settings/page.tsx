@@ -24,7 +24,7 @@ export default async function AdminSettingsPage() {
     .single()
 
   return (
-    <div className="max-w-2xl mx-auto p-4 pt-8">
+    <div>
       <h1 className="text-2xl font-bold mb-6">Platform Settings</h1>
       <SettingsClient
         settings={settings ?? { listing_fee: 50, gcash_number: '', gcash_name: '', gcash_qr_url: '' }}

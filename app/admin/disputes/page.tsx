@@ -31,7 +31,7 @@ export default async function AdminDisputesPage() {
     .order('created_at', { ascending: true })
 
   return (
-    <div className="max-w-3xl mx-auto p-4 pt-8">
+    <div>
       <h1 className="text-2xl font-bold mb-6">Disputes</h1>
       {!disputes?.length && <p className="text-muted-foreground">No open disputes.</p>}
       <div className="space-y-4">
