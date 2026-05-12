@@ -113,13 +113,13 @@ export default async function HomePage() {
   return (
     <main>
       {/* Hero + featured card — two-column on lg */}
-      <div className="relative bg-[#FDFBF6] overflow-hidden">
+      <div className="relative bg-[#FDFBF6] overflow-hidden min-h-[calc(100vh-3.5rem)] flex flex-col justify-center">
         <div
           className="absolute inset-0 opacity-[0.04] pointer-events-none"
           style={{ backgroundImage: 'radial-gradient(#000 1px, transparent 1px)', backgroundSize: '24px 24px' }}
           aria-hidden="true"
         />
-        <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-12 grid lg:grid-cols-12 lg:gap-10 items-center">
+        <div className="relative max-w-7xl mx-auto w-full px-6 py-16 grid lg:grid-cols-12 lg:gap-10 items-center">
           <div className="lg:col-span-7">
             <LandingHero stats={stats} />
           </div>
