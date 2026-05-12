@@ -65,7 +65,7 @@ export default async function HomePage() {
 
         {/* Trust strip */}
         <div className="py-4">
-          <div className="max-w-7xl mx-auto px-6 flex justify-center flex-wrap gap-x-8 gap-y-2 opacity-50">
+          <div className="max-w-7xl mx-auto px-6 flex justify-center flex-wrap gap-x-8 gap-y-2">
             {[
               { emoji: '🔒', label: 'Secure GCash payments' },
               { emoji: '🇵🇭', label: 'PH-verified sellers' },
