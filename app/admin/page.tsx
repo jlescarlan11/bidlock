@@ -13,28 +13,64 @@ export default async function AdminPage() {
   ])
 
   return (
-    <div className="max-w-3xl mx-auto p-4 pt-8">
-      <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-      <div className="grid grid-cols-3 gap-4 mb-8">
-        <StatCard label="Pending review" value={pending ?? 0} href="/admin/listings" />
-        <StatCard label="Live auctions" value={live ?? 0} href="/admin/listings" />
-        <StatCard label="Open disputes" value={openDisputes ?? 0} href="/admin/disputes" />
-      </div>
-      <div className="flex gap-3">
-        <Link href="/admin/listings" className="border rounded-lg px-4 py-2 text-sm hover:bg-muted transition-colors">Listings</Link>
-        <Link href="/admin/disputes" className="border rounded-lg px-4 py-2 text-sm hover:bg-muted transition-colors">Disputes</Link>
-        <Link href="/admin/users" className="border rounded-lg px-4 py-2 text-sm hover:bg-muted transition-colors">Users</Link>
-        <Link href="/admin/settings" className="border rounded-lg px-4 py-2 text-sm hover:bg-muted transition-colors">Settings</Link>
+    <div>
+      <h1 className="text-2xl font-bold mb-6">Overview</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard
+          label="Pending review"
+          value={pending ?? 0}
+          href="/admin/listings"
+          actionLabel="Review queue"
+          urgent={(pending ?? 0) > 0}
+        />
+        <StatCard
+          label="Live auctions"
+          value={live ?? 0}
+          href="/admin/listings"
+          actionLabel="All listings"
+          urgent={false}
+        />
+        <StatCard
+          label="Open disputes"
+          value={openDisputes ?? 0}
+          href="/admin/disputes"
+          actionLabel="Disputes"
+          urgent={(openDisputes ?? 0) > 0}
+        />
       </div>
     </div>
   )
 }
 
-function StatCard({ label, value, href }: { label: string; value: number; href: string }) {
+function StatCard({
+  label,
+  value,
+  href,
+  actionLabel,
+  urgent,
+}: {
+  label: string
+  value: number
+  href: string
+  actionLabel: string
+  urgent: boolean
+}) {
   return (
-    <Link href={href} className="border rounded-lg p-4 text-center hover:bg-muted transition-colors">
-      <p className="text-3xl font-bold">{value}</p>
-      <p className="text-sm text-muted-foreground mt-1">{label}</p>
+    <Link
+      href={href}
+      className={`block border rounded-lg p-5 transition-colors ${
+        urgent
+          ? 'border-primary/30 bg-primary/5 hover:bg-primary/10'
+          : 'hover:bg-muted'
+      }`}
+    >
+      <p className={`text-3xl font-bold ${urgent ? 'text-primary' : ''}`}>{value}</p>
+      <p className={`text-sm mt-1 ${urgent ? 'text-primary/80' : 'text-muted-foreground'}`}>
+        {label}
+      </p>
+      <p className={`text-xs mt-3 ${urgent ? 'text-primary/70' : 'text-muted-foreground/60'}`}>
+        → {actionLabel}
+      </p>
     </Link>
   )
 }
