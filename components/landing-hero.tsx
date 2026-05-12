@@ -17,12 +17,6 @@ export default function LandingHero({ stats }: { stats: HeroStats }) {
       />
 
       <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-12">
-        {/* Live badge */}
-        <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-900 text-xs font-bold px-3 py-1.5 rounded-full mb-6">
-          <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 ticker" aria-hidden="true" />
-          {stats.liveCount} auction{stats.liveCount !== 1 ? 's' : ''} live right now
-        </div>
-
         <h1 className="display text-6xl lg:text-8xl font-extrabold leading-[0.95] mb-6 text-gray-900">
           Going once.<br />
           Going twice.<br />
