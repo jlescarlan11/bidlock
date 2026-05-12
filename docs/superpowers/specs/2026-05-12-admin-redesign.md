@@ -34,7 +34,9 @@ Renders the five admin tabs. Uses `usePathname()` for active tab detection.
 
 **Mobile behavior:** Tab bar scrolls horizontally (`overflow-x-auto`). Active tab scrolls into view on route change (`element.scrollIntoView({ inline: 'nearest' })`).
 
-The tab bar sits below the main nav, separated by a bottom border on its container: `border-b` on the wrapping div, `max-w-7xl mx-auto px-6` on the inner nav.
+The tab bar sits below the main nav. The outer wrapping div carries `border-b` with no max-width so the border line spans edge-to-edge (matching the main nav's visual treatment). The inner div carries `max-w-7xl mx-auto px-6` and holds the tab links. Do not put `border-b` on the inner constrained div — it would produce a floating line that stops at the content boundary on wide screens.
+
+**Sticky positioning:** Non-sticky. The tab bar scrolls with the page. Revisit if any sub-page grows long enough to make section-switching inconvenient.
 
 ### Updated: `app/admin/page.tsx`
 New dashboard layout — no container div (layout handles it).
@@ -79,6 +81,10 @@ Files to update:
 - **Full-card click target:** The `<Link>` wraps the entire card. The `→ action` text is a visual affordance only — no nested anchor.
 - **Hover state:** `hover:bg-muted` on calm cards; `hover:bg-primary/10` on highlighted cards.
 - **Tab active matching:** Dashboard tab uses exact match (`pathname === '/admin'`). All other tabs use prefix match (`pathname.startsWith(tab.href)`) so nested routes like `/admin/listings/123` correctly highlight the Listings tab.
+
+## Loading State
+
+Dashboard counts (`pending`, `live`, `openDisputes`) are fetched server-side in the `async` page component — no client-side fetching. There is no loading flash; the page renders only after all counts are resolved. No skeleton or placeholder state needed.
 
 ## Responsive Breakpoints
 
