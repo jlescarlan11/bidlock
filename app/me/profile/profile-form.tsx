@@ -37,9 +37,11 @@ export default function ProfileForm({ profile }: Props) {
         <Input id="gcash_name" name="gcash_name" value={gcashName} onChange={(e) => setGcashName(e.target.value)} required />
         <p className="text-xs text-muted-foreground">The name registered on your GCash account</p>
       </div>
-      <Button type="submit" className="w-full" disabled={pending}>
-        {pending ? 'Saving…' : 'Save profile'}
-      </Button>
+      <div className="border-t border-border pt-5 flex justify-end">
+        <Button type="submit" disabled={pending}>
+          {pending ? 'Saving…' : 'Save profile'}
+        </Button>
+      </div>
     </form>
   )
 }
