@@ -4,6 +4,29 @@ import Link from 'next/link'
 import { formatPHP } from '@/lib/utils/currency'
 import { Badge } from '@/components/ui/badge'
 
+function getInitials(title: string): string {
+  return title
+    .split(' ')
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase() ?? '')
+    .join('')
+}
+
+type BidStatus = 'winning' | 'outbid' | 'no-other-bids'
+
+function getBidStatus(
+  bidAmount: number,
+  currentBid: number,
+  hasOtherBids: boolean
+): BidStatus {
+  if (!hasOtherBids) return 'no-other-bids'
+  return bidAmount >= currentBid ? 'winning' : 'outbid'
+}
+
+function formatEndedDate(endsAt: string): string {
+  return new Date(endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
+
 export default async function MyBidsPage() {
   const supabase = await createClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
