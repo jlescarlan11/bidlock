@@ -48,8 +48,8 @@ export default function NewListingPage() {
   ), [step])
 
   return (
-    <div className="max-w-[1100px] mx-auto px-6 pt-8">
-      <div className="max-w-[640px] mx-auto lg:max-w-none lg:grid lg:grid-cols-[480px_400px] lg:gap-12 lg:justify-center">
+    <div className="max-w-7xl mx-auto px-6 pt-8">
+      <div className="max-w-[640px] mx-auto lg:max-w-none lg:grid lg:grid-cols-[1fr_400px] lg:gap-12">
         {/* Left column */}
         <div>
           {stepIndicator}

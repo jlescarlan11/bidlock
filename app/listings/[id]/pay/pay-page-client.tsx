@@ -77,7 +77,7 @@ export function PayPageClient({ gcashNumber, left, right }: PayPageClientProps) 
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:max-w-[560px] md:mx-auto lg:max-w-none lg:grid-cols-[480px_480px] lg:gap-12 lg:justify-center">
+      <div className="grid grid-cols-1 gap-6 md:max-w-[560px] md:mx-auto lg:max-w-none lg:grid-cols-2 lg:gap-12">
         {/* Left column — sentinel appended after card so observer fires when card exits */}
         <div>
           {left}

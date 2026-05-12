@@ -53,7 +53,7 @@ export default async function PayPage({ params }: { params: Promise<{ id: string
     (profile?.display_name ?? '').trim() || (user.email?.split('@')[0] ?? 'user')
 
   return (
-    <div className="max-w-[1100px] mx-auto px-4 py-8">
+    <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="inline-flex items-center gap-1.5 bg-gray-100 text-gray-600 text-xs rounded-full px-3 py-1 mb-4">
         <Clock size={12} aria-hidden="true" />
         Payment pending
