@@ -6,6 +6,10 @@ import AuctionControls from './auction-controls'
 
 const PAGE_SIZE = 20
 
+export const metadata = {
+  title: 'Live Auctions — BidLock',
+}
+
 const SORT_MAP: Record<string, { column: string; ascending: boolean }> = {
   ending_soon: { column: 'ends_at', ascending: true },
   newest:      { column: 'created_at', ascending: false },

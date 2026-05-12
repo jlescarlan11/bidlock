@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter, usePathname } from 'next/navigation'
-import { useRef, useEffect } from 'react'
+import { useRef, useEffect, useState } from 'react'
 
 type SortOption = 'ending_soon' | 'newest' | 'lowest_bid' | 'highest_bid'
 
@@ -15,6 +15,7 @@ export default function AuctionControls({
   const router = useRouter()
   const pathname = usePathname()
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [inputValue, setInputValue] = useState(q)
 
   function pushParams(updates: Partial<{ q: string; sort: string; page: string }>) {
     const params = new URLSearchParams()
@@ -27,9 +28,14 @@ export default function AuctionControls({
   }
 
   function handleSearch(value: string) {
+    setInputValue(value)
     if (debounceRef.current) clearTimeout(debounceRef.current)
     debounceRef.current = setTimeout(() => pushParams({ q: value, page: '1' }), 300)
   }
+
+  useEffect(() => {
+    setInputValue(q)
+  }, [q])
 
   useEffect(() => {
     return () => {
@@ -41,7 +47,7 @@ export default function AuctionControls({
     <div className="flex gap-3 items-center">
       <input
         type="search"
-        value={q}
+        value={inputValue}
         placeholder="Search auctions…"
         onChange={(e) => handleSearch(e.target.value)}
         className="flex-1 h-9 rounded-lg border border-input bg-background px-3 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
