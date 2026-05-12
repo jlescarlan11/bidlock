@@ -12,8 +12,17 @@ const font = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: 'BidLock',
-  description: 'Philippine auction marketplace',
+  title: {
+    default: 'BidLock',
+    template: '%s — BidLock',
+  },
+  description: 'Philippine auction marketplace — bid on real items, pay via GCash.',
+  openGraph: {
+    type: 'website',
+    siteName: 'BidLock',
+    title: 'BidLock',
+    description: 'Philippine auction marketplace — bid on real items, pay via GCash.',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

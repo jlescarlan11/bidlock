@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { formatPHP } from '@/lib/utils/currency'
@@ -7,6 +8,42 @@ import RecentBidsSection from './recent-bids-section'
 import ChatSection from './chat-section'
 import RatingForm from './rating-form'
 import DisputeForm from './dispute-form'
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ id: string }> }
+): Promise<Metadata> {
+  const { id } = await params
+  const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any
+
+  const { data: listing } = await db
+    .from('listings')
+    .select('title, listing_photos(storage_path, display_order)')
+    .eq('id', id)
+    .single()
+
+  if (!listing) return { title: 'BidLock' }
+
+  const photos = (listing.listing_photos ?? [])
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    .sort((a: any, b: any) => a.display_order - b.display_order)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const firstPhoto = photos[0] as any | undefined
+  const firstPhotoUrl = firstPhoto
+    ? supabase.storage.from('listing-photos').getPublicUrl(firstPhoto.storage_path).data.publicUrl
+    : null
+
+  return {
+    title: listing.title,
+    description: `Bid on "${listing.title}" — live auction on BidLock.`,
+    openGraph: {
+      title: `${listing.title} — BidLock`,
+      description: `Bid on "${listing.title}" — live auction on BidLock.`,
+      ...(firstPhotoUrl ? { images: [firstPhotoUrl] } : {}),
+    },
+  }
+}
 
 export default async function ListingPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
