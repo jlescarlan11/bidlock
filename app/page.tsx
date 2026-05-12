@@ -102,7 +102,7 @@ export default async function HomePage() {
             },
             {
               icon: '📦',
-              title: 'Win? Pay in 24 hours.',
+              title: 'Win? Pay typically within 24 hours.',
               body: 'Quick GCash transfer, seller ships, item arrives. Simple as that.',
             },
           ].map(({ icon, title, body }) => (
