@@ -31,22 +31,24 @@ export default async function Nav() {
         <Link href="/auctions" className="hover:text-gray-900 transition-colors">Browse</Link>
         <Link href="/how" className="hover:text-gray-900 transition-colors">How it works</Link>
         <Link href="/listings/new" className="hover:text-gray-900 transition-colors">Sell</Link>
+        {user && (
+          <>
+            <Link href="/me?tab=listings" className="hover:text-gray-900 transition-colors">My listings</Link>
+            <Link href="/me?tab=bids" className="hover:text-gray-900 transition-colors">My bids</Link>
+            <Link href="/me/profile" className="hover:text-gray-900 transition-colors">Profile</Link>
+            {isAdmin && (
+              <Link href="/admin" className="text-orange-600 hover:text-orange-700 transition-colors">Admin</Link>
+            )}
+          </>
+        )}
       </div>
 
       {/* Right side */}
       <div className="flex items-center gap-3 text-sm">
         {user ? (
-          <>
-            <Link href="/me?tab=listings" className="text-gray-600 hover:text-gray-900 transition-colors">My listings</Link>
-            <Link href="/me?tab=bids" className="text-gray-600 hover:text-gray-900 transition-colors">My bids</Link>
-            <Link href="/me/profile" className="text-gray-600 hover:text-gray-900 transition-colors">Profile</Link>
-            {isAdmin && (
-              <Link href="/admin" className="text-orange-600 hover:text-orange-700 font-semibold transition-colors">Admin</Link>
-            )}
-            <form action={signOut}>
-              <button type="submit" className="text-gray-600 hover:text-gray-900 transition-colors">Sign out</button>
-            </form>
-          </>
+          <form action={signOut}>
+            <button type="submit" className="text-gray-600 hover:text-gray-900 transition-colors font-medium">Sign out</button>
+          </form>
         ) : (
           <>
             <Link href="/auth/login" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">Sign in</Link>
