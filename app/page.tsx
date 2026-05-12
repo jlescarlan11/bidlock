@@ -8,12 +8,12 @@ export default async function HomePage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any
 
-  // Fetch teaser listings and all live IDs for stats in parallel
+  // Fetch teaser and stats: first wave in parallel, then activeBids (needs liveIds)
   const [
     { data: rawTeaser },
     { data: allLive },
     { count: itemsSold },
-    { data: soldListings },
+    { data: totalSoldResult },
   ] = await Promise.all([
     db
       .from('listings')
@@ -23,7 +23,7 @@ export default async function HomePage() {
       .limit(4),
     db.from('listings').select('id').eq('status', 'live'),
     db.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'ended').not('winner_id', 'is', null),
-    db.from('listings').select('current_bid').eq('status', 'ended').not('winner_id', 'is', null),
+    db.rpc('get_total_sold_amount'),
   ])
 
   const liveIds = (allLive ?? []).map((l: any) => l.id)
@@ -32,7 +32,7 @@ export default async function HomePage() {
     ? await db.from('bids').select('id', { count: 'exact', head: true }).in('listing_id', liveIds)
     : { count: 0 }
 
-  const totalSold = (soldListings ?? []).reduce((sum: number, l: any) => sum + Number(l.current_bid), 0)
+  const totalSold = Number(totalSoldResult ?? 0)
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const teaserListings = (rawTeaser ?? []).map((listing: any) => {
@@ -134,7 +134,7 @@ export default async function HomePage() {
             },
             {
               icon: '📦',
-              title: 'Win? Pay in 24 hours.',
+              title: 'Win? Pay typically within 24 hours.',
               body: 'Quick GCash transfer, seller ships, item arrives. Simple as that.',
             },
           ].map(({ icon, title, body }) => (
