@@ -25,7 +25,7 @@ export default async function Nav() {
       <div className="flex items-center gap-5 text-sm">
         {user ? (
           <>
-            <Link href="/#live-auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
+            <Link href="/auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
             <Link href="/listings/new" className="text-muted-foreground hover:text-foreground transition-colors">Sell</Link>
             <Link href="/me?tab=listings" className="text-muted-foreground hover:text-foreground transition-colors">My listings</Link>
             <Link href="/me?tab=bids" className="text-muted-foreground hover:text-foreground transition-colors">My bids</Link>
@@ -37,7 +37,7 @@ export default async function Nav() {
           </>
         ) : (
           <>
-            <Link href="/#live-auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
+            <Link href="/auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
             <Link href="/auth/login" className="text-muted-foreground hover:text-foreground font-medium transition-colors">Sign in</Link>
             <Button size="sm" nativeButton={false} render={<Link href="/auth/signup" />}>
               Sign up
