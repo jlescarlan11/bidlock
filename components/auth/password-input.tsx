@@ -25,7 +25,7 @@ export function PasswordInput({ id, name, required, minLength, autoComplete, cla
         required={required}
         minLength={minLength}
         autoComplete={autoComplete}
-        className={cn('pr-10 h-11 rounded-lg border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-violet-600/20 focus-visible:border-violet-600 transition-colors duration-150', className)}
+        className={cn('pr-10 h-11 rounded-lg border-slate-200 bg-white focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary transition-colors duration-150', className)}
       />
       <button
         type="button"
