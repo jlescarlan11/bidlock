@@ -10,6 +10,7 @@ import RatingForm from './rating-form'
 import DisputeForm from './dispute-form'
 import Link from 'next/link'
 import { resolveContactDisplay } from '@/lib/contact-display'
+import ViewCounter from '@/components/listings/view-counter'
 
 export async function generateMetadata(
   { params }: { params: Promise<{ id: string }> }
@@ -159,6 +160,7 @@ export default async function ListingPage({ params }: { params: Promise<{ id: st
 
   return (
     <main className="max-w-7xl mx-auto px-6 py-8 pb-32 md:pb-8">
+      <ViewCounter listingId={listing.id} />
       <div className="grid grid-cols-1 md:grid-cols-[3fr_2fr] gap-8 items-start">
 
         {/* ── Left column ── */}

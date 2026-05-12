@@ -155,3 +155,9 @@ export async function submitPaymentProof(
   revalidatePath(`/listings/${listingId}/pay`)
   redirect('/me/listings')
 }
+
+export async function incrementViewCount(listingId: string): Promise<void> {
+  const supabase = await createClient()
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await (supabase as any).rpc('increment_listing_view', { p_listing_id: listingId })
+}
