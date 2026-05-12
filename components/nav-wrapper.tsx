@@ -21,7 +21,7 @@ export default function NavWrapper({ children }: { children: React.ReactNode }) 
   return (
     <header
       className={`sticky top-0 z-10 transition-colors duration-300 ${
-        white ? 'bg-background border-b border-border' : 'bg-violet-50'
+        white ? 'bg-background border-b border-gray-900/10' : 'bg-background'
       }`}
     >
       {children}

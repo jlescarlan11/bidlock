@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { signOut } from '@/lib/actions/auth'
-import { Button } from '@/components/ui/button'
 
 export default async function Nav() {
   const supabase = await createClient()
@@ -20,28 +19,43 @@ export default async function Nav() {
   }
 
   return (
-    <nav className="px-6 h-14 flex items-center justify-between max-w-7xl mx-auto">
-      <Link href="/" className="font-black text-xl text-primary tracking-tight">BidLock</Link>
-      <div className="flex items-center gap-5 text-sm">
+    <nav className="h-14 flex items-center justify-between max-w-7xl mx-auto px-6">
+      {/* Wordmark */}
+      <Link href="/" className="flex items-center">
+        <span className="font-black text-xl text-gray-900 tracking-tight">BidLock</span>
+        <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 ml-0.5 mb-0.5" aria-hidden="true" />
+      </Link>
+
+      {/* Center nav */}
+      <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
+        <Link href="/auctions" className="hover:text-gray-900 transition-colors">Browse</Link>
+        <Link href="/how" className="hover:text-gray-900 transition-colors">How it works</Link>
+        <Link href="/listings/new" className="hover:text-gray-900 transition-colors">Sell</Link>
+      </div>
+
+      {/* Right side */}
+      <div className="flex items-center gap-3 text-sm">
         {user ? (
           <>
-            <Link href="/auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
-            <Link href="/listings/new" className="text-muted-foreground hover:text-foreground transition-colors">Sell</Link>
-            <Link href="/me?tab=listings" className="text-muted-foreground hover:text-foreground transition-colors">My listings</Link>
-            <Link href="/me?tab=bids" className="text-muted-foreground hover:text-foreground transition-colors">My bids</Link>
-            <Link href="/me/profile" className="text-muted-foreground hover:text-foreground transition-colors">Profile</Link>
-            {isAdmin && <Link href="/admin" className="text-primary hover:text-primary/80 font-semibold transition-colors">Admin</Link>}
+            <Link href="/me?tab=listings" className="text-gray-600 hover:text-gray-900 transition-colors">My listings</Link>
+            <Link href="/me?tab=bids" className="text-gray-600 hover:text-gray-900 transition-colors">My bids</Link>
+            <Link href="/me/profile" className="text-gray-600 hover:text-gray-900 transition-colors">Profile</Link>
+            {isAdmin && (
+              <Link href="/admin" className="text-orange-600 hover:text-orange-700 font-semibold transition-colors">Admin</Link>
+            )}
             <form action={signOut}>
-              <Button variant="ghost" size="sm" type="submit" className="text-muted-foreground hover:text-foreground">Sign out</Button>
+              <button type="submit" className="text-gray-600 hover:text-gray-900 transition-colors">Sign out</button>
             </form>
           </>
         ) : (
           <>
-            <Link href="/auctions" className="text-muted-foreground hover:text-foreground transition-colors">Auctions</Link>
-            <Link href="/auth/login" className="text-muted-foreground hover:text-foreground font-medium transition-colors">Sign in</Link>
-            <Button size="sm" nativeButton={false} render={<Link href="/auth/signup" />}>
-              Sign up
-            </Button>
+            <Link href="/auth/login" className="text-gray-700 hover:text-gray-900 font-medium transition-colors">Sign in</Link>
+            <Link
+              href="/auth/signup"
+              className="bg-gray-900 text-white px-5 py-2 rounded-full font-semibold hover:bg-gray-800 transition-colors"
+            >
+              Join
+            </Link>
           </>
         )}
       </div>
