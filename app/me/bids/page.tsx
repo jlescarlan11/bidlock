@@ -6,7 +6,9 @@ import { Badge } from '@/components/ui/badge'
 
 function getInitials(title: string): string {
   return title
+    .trim()
     .split(' ')
+    .filter(Boolean)
     .slice(0, 2)
     .map((w) => w[0]?.toUpperCase() ?? '')
     .join('')
@@ -24,7 +26,9 @@ function getBidStatus(
 }
 
 function formatEndedDate(endsAt: string): string {
-  return new Date(endsAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  const d = new Date(endsAt)
+  if (isNaN(d.getTime())) return ''
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 export default async function MyBidsPage() {
