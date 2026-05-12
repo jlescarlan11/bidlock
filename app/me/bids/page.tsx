@@ -172,7 +172,7 @@ export default async function MyBidsPage() {
   const lost = bidsWithThumbs.filter((b: any) => b.listings?.status === 'ended' && b.listings?.winner_id !== null && b.listings?.winner_id !== user.id)
 
   return (
-    <div className="max-w-2xl mx-auto p-4 pt-8 space-y-8">
+    <div className="max-w-7xl mx-auto p-4 pt-8 space-y-8">
       <h1 className="text-2xl font-bold">My Bids</h1>
 
       <Section title="Active" items={active} userId={user.id} otherBidListings={otherBidListings} />
