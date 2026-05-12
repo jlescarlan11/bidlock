@@ -22,7 +22,7 @@ export default async function Nav() {
     <nav className="h-14 flex items-center justify-between max-w-7xl mx-auto px-6">
       {/* Wordmark */}
       <Link href="/" className="flex items-center">
-        <span className="font-black text-xl text-gray-900 tracking-tight">BidLock</span>
+        <span className="display font-black text-xl text-gray-900 tracking-tight">BidLock</span>
         <span className="inline-block w-1.5 h-1.5 rounded-full bg-orange-500 ml-0.5 mb-0.5" aria-hidden="true" />
       </Link>
 
