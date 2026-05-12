@@ -15,27 +15,61 @@ export default async function MyBidsPage() {
     .from('bids')
     .select(`
       id, amount, created_at,
-      listings (id, title, status, current_bid, winner_id, ends_at)
+      listings (id, title, status, current_bid, winner_id, ends_at,
+        listing_photos (storage_path, display_order)
+      )
     `)
     .eq('bidder_id', user.id)
     .order('created_at', { ascending: false })
 
-  const active = bids?.filter((b: any) => (b.listings as any)?.status === 'live') ?? []
-  const won = bids?.filter((b: any) => (b.listings as any)?.status === 'ended' && (b.listings as any)?.winner_id === user.id) ?? []
-  const lost = bids?.filter((b: any) => (b.listings as any)?.status === 'ended' && (b.listings as any)?.winner_id !== null && (b.listings as any)?.winner_id !== user.id) ?? []
+  const seen = new Set<string>()
+  const deduped = (bids ?? []).filter((b: any) => {
+    const id = b.listings?.id
+    if (!id || seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
+
+  const bidsWithThumbs = deduped.map((bid: any) => {
+    const photos: any[] = bid.listings?.listing_photos ?? []
+    const firstPhoto = photos.sort((a: any, b: any) => a.display_order - b.display_order)[0]
+    const thumbnailUrl = firstPhoto
+      ? supabase.storage.from('listing-photos').getPublicUrl(firstPhoto.storage_path).data.publicUrl
+      : null
+    return { ...bid, thumbnailUrl }
+  })
+
+  const activeListingIds: string[] = bidsWithThumbs
+    .filter((b: any) => b.listings?.status === 'live')
+    .map((b: any) => b.listings?.id)
+    .filter(Boolean)
+
+  const otherBidListings = new Set<string>()
+  if (activeListingIds.length > 0) {
+    const { data: otherBids } = await db
+      .from('bids')
+      .select('listing_id')
+      .neq('bidder_id', user.id)
+      .in('listing_id', activeListingIds)
+    ;(otherBids ?? []).forEach((b: any) => otherBidListings.add(b.listing_id))
+  }
+
+  const active = bidsWithThumbs.filter((b: any) => b.listings?.status === 'live')
+  const won = bidsWithThumbs.filter((b: any) => b.listings?.status === 'ended' && b.listings?.winner_id === user.id)
+  const lost = bidsWithThumbs.filter((b: any) => b.listings?.status === 'ended' && b.listings?.winner_id !== null && b.listings?.winner_id !== user.id)
 
   return (
     <div className="max-w-2xl mx-auto p-4 pt-8 space-y-8">
       <h1 className="text-2xl font-bold">My Bids</h1>
 
-      <Section title="Active" items={active} userId={user.id} />
-      <Section title="Won" items={won} userId={user.id} />
-      <Section title="Lost" items={lost} userId={user.id} />
+      <Section title="Active" items={active} userId={user.id} otherBidListings={otherBidListings} />
+      <Section title="Won" items={won} userId={user.id} otherBidListings={new Set()} />
+      <Section title="Lost" items={lost} userId={user.id} otherBidListings={new Set()} />
     </div>
   )
 }
 
-function Section({ title, items, userId }: { title: string; items: any[]; userId: string }) {
+function Section({ title, items, userId, otherBidListings }: { title: string; items: any[]; userId: string; otherBidListings: Set<string> }) {
   return (
     <div>
       <h2 className="font-semibold mb-3">{title} ({items.length})</h2>
