@@ -1,13 +1,22 @@
 import type { Metadata } from 'next'
-import { Plus_Jakarta_Sans } from 'next/font/google'
+import { Inter, Bricolage_Grotesque } from 'next/font/google'
 import { Toaster } from 'sonner'
 import Nav from '@/components/nav'
 import NavWrapper from '@/components/nav-wrapper'
+import Footer from '@/components/footer'
 import './globals.css'
 
-const font = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700', '800'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-inter',
+  display: 'swap',
+})
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ['latin'],
+  weight: ['400', '500', '700', '800'],
+  variable: '--font-bricolage',
   display: 'swap',
 })
 
@@ -27,10 +36,11 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="scroll-smooth">
-      <body className={`${font.className} bg-violet-50`}>
+    <html lang="en" className={`${inter.variable} ${bricolage.variable} scroll-smooth`}>
+      <body className={`${inter.className} bg-background`}>
         <NavWrapper><Nav /></NavWrapper>
         {children}
+        <Footer />
         <Toaster position="top-right" richColors />
       </body>
     </html>
