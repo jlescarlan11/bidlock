@@ -17,17 +17,17 @@ export default async function HomePage() {
 
   const [
     { count: itemsSold },
-    { data: soldListings },
+    { data: totalSoldResult },
     { count: activeBids },
   ] = await Promise.all([
     db.from('listings').select('id', { count: 'exact', head: true }).eq('status', 'ended').not('winner_id', 'is', null),
-    db.from('listings').select('current_bid').eq('status', 'ended').not('winner_id', 'is', null),
+    db.rpc('get_total_sold_amount'),
     liveIds.length > 0
       ? db.from('bids').select('id', { count: 'exact', head: true }).in('listing_id', liveIds)
       : Promise.resolve({ count: 0, data: null, error: null }),
   ])
 
-  const totalSold = (soldListings ?? []).reduce((sum: number, l: any) => sum + Number(l.current_bid), 0)
+  const totalSold = Number(totalSoldResult ?? 0)
 
   const listings = (rawListings ?? []).map((listing: any) => {
     const bidRows: { created_at: string }[] = listing.bids ?? []
