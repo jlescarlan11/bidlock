@@ -37,11 +37,32 @@ export async function signup(
   const { error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
-    options: { data: { full_name: parsed.data.display_name } },
+    options: {
+      data: { full_name: parsed.data.display_name },
+      emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+    },
   })
   if (error) return { error: error.message }
 
-  redirect('/me/profile')
+  redirect(`/auth/verify-email?email=${encodeURIComponent(parsed.data.email)}`)
+}
+
+export async function resendConfirmationEmail(
+  _prevState: { error?: string; success?: boolean } | undefined,
+  formData: FormData,
+) {
+  const email = formData.get('email')
+  if (typeof email !== 'string' || !email) return { error: 'Email is required.' }
+
+  const supabase = await createClient()
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: `${env.NEXT_PUBLIC_SITE_URL}/auth/callback` },
+  })
+  if (error) return { error: error.message }
+
+  return { success: true }
 }
 
 export async function signInWithGoogle(): Promise<void> {
