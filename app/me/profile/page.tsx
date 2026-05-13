@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import ProfileForm from './profile-form'
 
 function formatMemberSince(dateString: string): string {
@@ -42,9 +43,18 @@ export default async function ProfilePage() {
           <div className="border-t border-border my-4" />
           <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Member since</p>
           <p className="text-sm text-muted-foreground mb-4">{memberSince}</p>
-          <span className="text-sm font-medium text-muted-foreground/50 cursor-not-allowed select-none">
-            View public profile →
-          </span>
+          {profile?.username ? (
+            <Link
+              href={`/users/${profile.username}`}
+              className="text-sm font-medium text-primary hover:underline"
+            >
+              View public profile →
+            </Link>
+          ) : (
+            <span className="text-sm font-medium text-muted-foreground/50 cursor-not-allowed select-none">
+              View public profile →
+            </span>
+          )}
         </div>
 
         {/* Form card */}
