@@ -11,10 +11,6 @@ export const revalidate = 60
 
 type Props = { params: Promise<{ username: string }> }
 
-function getInitial(displayName: string | null, username: string): string {
-  const src = displayName?.trim() || username
-  return src[0].toUpperCase()
-}
 
 function formatMemberSince(dateString: string): string {
   return new Date(dateString).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
@@ -33,14 +29,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const db = supabase as any
   const { data: profile } = await db
     .from('profiles')
-    .select('display_name, username')
+    .select('username')
     .eq('username', username.toLowerCase())
     .maybeSingle()
   if (!profile) return { title: 'Profile not found · BidLock' }
-  const name = profile.display_name ?? `@${profile.username}`
   return {
-    title: `${name} (@${profile.username}) · BidLock`,
-    description: `View ${name}'s live auctions and seller ratings on BidLock.`,
+    title: `@${profile.username} · BidLock`,
+    description: `View @${profile.username}'s live auctions and seller ratings on BidLock.`,
   }
 }
 
@@ -52,7 +47,7 @@ export default async function PublicProfilePage({ params }: Props) {
 
   const { data: profile } = await db
     .from('profiles')
-    .select('id, display_name, username, created_at')
+    .select('id, username, created_at')
     .eq('username', username.toLowerCase())
     .maybeSingle()
 
@@ -68,7 +63,7 @@ export default async function PublicProfilePage({ params }: Props) {
   const [ratingsRes, liveRes, endedRes] = await Promise.all([
     db
       .from('ratings')
-      .select('id, verdict, comment, created_at, rater:rater_id(display_name)')
+      .select('id, verdict, comment, created_at, rater:rater_id(username)')
       .eq('ratee_id', profile.id)
       .order('created_at', { ascending: false })
       .limit(20),
@@ -139,7 +134,7 @@ export default async function PublicProfilePage({ params }: Props) {
   const totalRatings = upCount + downCount
   const positivePercent = totalRatings > 0 ? Math.round((upCount / totalRatings) * 100) : null
 
-  const initial = getInitial(profile.display_name, profile.username)
+  const initial = profile.username[0].toUpperCase()
   const memberSince = formatMemberSince(profile.created_at)
 
   return (
@@ -150,8 +145,7 @@ export default async function PublicProfilePage({ params }: Props) {
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-3">
             <span className="text-white text-xl font-bold tracking-tight">{initial}</span>
           </div>
-          <p className="text-sm font-semibold text-foreground mb-1">{profile.display_name ?? '—'}</p>
-          <p className="text-xs text-muted-foreground mb-2">@{profile.username}</p>
+          <p className="text-sm font-semibold text-foreground mb-1">@{profile.username}</p>
           {totalRatings > 0 && (
             <a href="#ratings" className="inline-block text-xs text-muted-foreground hover:text-foreground mb-2">
               👍 {upCount}&nbsp;&nbsp;👎 {downCount}
@@ -237,7 +231,7 @@ export default async function PublicProfilePage({ params }: Props) {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-2 mb-1">
                           <p className="text-xs font-semibold text-foreground">
-                            {rating.rater?.display_name ?? 'Unknown user'}
+                            {rating.rater?.username ? `@${rating.rater.username}` : 'Unknown user'}
                           </p>
                           {rating.created_at && (
                             <p className="text-xs text-muted-foreground shrink-0">

@@ -9,17 +9,15 @@ import { Label } from '@/components/ui/label'
 
 type Props = {
   profile: {
-    display_name: string | null
+    username: string | null
     phone_number: string | null
     gcash_name: string | null
-    username: string | null
   } | null
 }
 
 export default function ProfileForm({ profile }: Props) {
   const [state, action, pending] = useActionState(upsertProfile, undefined)
   const [username, setUsername] = useState(profile?.username ?? '')
-  const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
   const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number ?? '')
   const [gcashName, setGcashName] = useState(profile?.gcash_name ?? '')
 
@@ -44,10 +42,6 @@ export default function ProfileForm({ profile }: Props) {
             ? `Your public URL: bidlock.ph/users/${username.trim().toLowerCase()}`
             : 'Set a username to get a public profile URL'}
         </p>
-      </div>
-      <div className="space-y-1">
-        <Label htmlFor="display_name">Display name</Label>
-        <Input id="display_name" name="display_name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
       </div>
       <div className="space-y-1">
         <Label htmlFor="phone_number">Phone number</Label>

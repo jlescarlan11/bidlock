@@ -17,7 +17,6 @@ export async function upsertProfile(
   const usernameInput = rawUsername === '' ? undefined : rawUsername
 
   const parsed = profileSchema.safeParse({
-    display_name: formData.get('display_name'),
     phone_number: formData.get('phone_number'),
     gcash_name: formData.get('gcash_name'),
     username: usernameInput,
