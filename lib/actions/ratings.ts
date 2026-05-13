@@ -51,5 +51,14 @@ export async function submitRating(formData: FormData) {
   if (error) return { error: error.message }
 
   revalidatePath(`/listings/${parsed.data.listing_id}`)
+
+  // Revalidate the ratee's public profile so their rating summary refreshes
+  const { data: ratee } = await db
+    .from('profiles')
+    .select('username')
+    .eq('id', parsed.data.ratee_id)
+    .maybeSingle()
+  if (ratee?.username) revalidatePath(`/users/${ratee.username}`)
+
   return { success: true }
 }
