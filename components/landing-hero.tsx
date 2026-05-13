@@ -70,7 +70,6 @@ export default function LandingHero({ stats }: { stats: HeroStats }) {
             <span className="text-xs text-gray-600">new today</span>
           </div>
         </div>
-      </div>
     </div>
   )
 }
