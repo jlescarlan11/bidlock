@@ -2,6 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export async function approveListing(listingId: string) {
   const supabase = await createClient()
@@ -205,17 +206,22 @@ export async function updateSettings(formData: FormData) {
     gcash_name: formData.get('gcash_name'),
   }
 
+  const adminDb = createAdminClient()
+
   const qrFile = formData.get('gcash_qr') as File
   if (qrFile && qrFile.size > 0) {
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await adminDb.storage
       .from('listing-photos')
       .upload('admin/gcash-qr.png', qrFile, { upsert: true })
     if (uploadError) return { error: uploadError.message }
-    updates.gcash_qr_url = supabase.storage.from('listing-photos').getPublicUrl('admin/gcash-qr.png').data.publicUrl
+    const { data: { publicUrl } } = adminDb.storage.from('listing-photos').getPublicUrl('admin/gcash-qr.png')
+    updates.gcash_qr_url = `${publicUrl}?v=${Date.now()}`
   }
-
-  const { error } = await db.from('settings').upsert({ id: 1, ...updates }, { onConflict: 'id' })
-  if (error) return { error: error.message }
+  const { error } = await adminDb.from('settings').update(updates).eq('id', 1)
+  if (error) {
+    console.error('[updateSettings] update failed:', { message: error.message, code: error.code, details: error.details, hint: error.hint })
+    return { error: error.message }
+  }
 
   revalidatePath('/admin/settings')
   return { success: true }

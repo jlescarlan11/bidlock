@@ -38,7 +38,7 @@ export default async function AuctionsPage({
   let query = db
     .from('listings')
     .select(
-      'id, title, current_bid, ends_at, listing_photos(storage_path, display_order), bids(created_at)',
+      'id, title, current_bid, retail_price, ends_at, view_count, listing_photos(storage_path, display_order), bids(id), profiles!auctioneer_id(username)',
       { count: 'exact' }
     )
     .eq('status', 'live')
@@ -52,28 +52,20 @@ export default async function AuctionsPage({
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE))
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const listings = (rawListings ?? []).map((listing: any) => {
-    const bidRows: { created_at: string }[] = listing.bids ?? []
-    const bid_count = bidRows.length
-    const last_bid_at =
-      bidRows.length > 0
-        ? bidRows.reduce(
-            (max: string, b: any) => (b.created_at > max ? b.created_at : max),
-            bidRows[0].created_at
-          )
-        : null
-    return {
-      id: listing.id,
-      title: listing.title,
-      current_bid: listing.current_bid,
-      ends_at: listing.ends_at,
-      bid_count,
-      last_bid_at,
-      listing_photos: (listing.listing_photos ?? []).sort(
-        (a: any, b: any) => a.display_order - b.display_order
-      ),
-    }
-  })
+  const listings = (rawListings ?? []).map((listing: any) => ({
+    id: listing.id,
+    title: listing.title,
+    current_bid: listing.current_bid,
+    retail_price: listing.retail_price ?? null,
+    ends_at: listing.ends_at,
+    bid_count: (listing.bids ?? []).length,
+    view_count: listing.view_count ?? 0,
+    seller_username: listing.profiles?.username ?? null,
+    listing_photos: (listing.listing_photos ?? []).sort(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (a: any, b: any) => a.display_order - b.display_order
+    ),
+  }))
 
   function pageHref(p: number) {
     const params = new URLSearchParams()
@@ -85,36 +77,31 @@ export default async function AuctionsPage({
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-foreground">Live Auctions</h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {count ?? 0} live {(count ?? 0) === 1 ? 'auction' : 'auctions'}
-        </p>
-      </div>
-
-      <div className="mb-6">
-        <Suspense fallback={<div className="h-9 w-full animate-pulse rounded-lg bg-muted" />}>
-          <AuctionControls q={q} sort={sort as 'ending_soon' | 'newest' | 'lowest_bid' | 'highest_bid'} />
-        </Suspense>
-      </div>
+      <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl bg-muted mb-8" />}>
+        <AuctionControls
+          q={q}
+          sort={sort as 'ending_soon' | 'newest' | 'lowest_bid' | 'highest_bid'}
+          count={count ?? 0}
+        />
+      </Suspense>
 
       {listings.length === 0 ? (
         <div className="py-20 text-center">
-          <p className="text-4xl mb-3" aria-hidden="true">🔨</p>
+          <p className="text-4xl mb-4" aria-hidden="true">🔨</p>
           {q ? (
             <>
-              <p className="font-bold text-foreground mb-1">No auctions match your search.</p>
+              <p className="font-bold text-gray-900 mb-1">No auctions match your search.</p>
               <Link
                 href="/auctions"
-                className="text-primary text-sm font-medium mt-2 inline-block hover:underline"
+                className="text-sm font-semibold text-gray-700 hover:text-gray-900 mt-2 inline-block"
               >
                 Clear filters
               </Link>
             </>
           ) : (
             <>
-              <p className="font-bold text-foreground mb-1">No live auctions right now.</p>
-              <p className="text-sm text-muted-foreground mt-1">Check back soon — new items drop daily.</p>
+              <p className="font-bold text-gray-900 mb-1">No live auctions right now</p>
+              <p className="text-sm text-gray-500 mt-1">Check back soon — new items drop daily.</p>
             </>
           )}
         </div>
@@ -126,7 +113,7 @@ export default async function AuctionsPage({
             ))}
           </div>
 
-          {totalPages > 1 && (
+          {totalPages > 1 ? (
             <div className="flex justify-center items-center gap-6 mt-10">
               {page > 1 ? (
                 <Link href={pageHref(page - 1)} className="text-sm font-medium text-primary hover:underline">
@@ -143,6 +130,20 @@ export default async function AuctionsPage({
               ) : (
                 <span className="text-sm text-muted-foreground opacity-40">Next →</span>
               )}
+            </div>
+          ) : (
+            <div className="mt-12 text-center">
+              <div className="inline-flex flex-col items-center gap-3">
+                <p className="text-sm text-gray-500">
+                  You&apos;re caught up — that&apos;s all {count ?? 0} auction{(count ?? 0) !== 1 ? 's' : ''} for now.
+                </p>
+                <Link
+                  href="/listings/new"
+                  className="inline-flex items-center gap-2 bg-gray-900 text-white text-sm font-bold px-6 py-3 rounded-full hover:bg-gray-800 transition-colors"
+                >
+                  Got something to sell? List it →
+                </Link>
+              </div>
             </div>
           )}
         </>

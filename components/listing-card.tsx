@@ -10,45 +10,26 @@ type Props = {
     id: string
     title: string
     current_bid: number
+    retail_price: number | null
     ends_at: string
     bid_count: number
-    last_bid_at: string | null
+    view_count: number
+    seller_username: string | null
     listing_photos: { storage_path: string; display_order: number }[]
   }
 }
 
-// Card-level heat treatment is time-only. bid_count is expressed through the
-// bid pill, not the card background — popularity ≠ urgency.
-function getCardState(endsAt: string) {
-  const hoursLeft = (new Date(endsAt).getTime() - Date.now()) / 3_600_000
-  const isLive = hoursLeft > 0
-  const isHot  = isLive && hoursLeft < 1
-  const isWarm = isLive && !isHot && hoursLeft < 24
-  const timerVariant: 'gray' | 'amber' | 'red' =
-    isHot ? 'red' : isWarm ? 'amber' : 'gray'
-  return { isHot, isWarm, timerVariant }
-}
+type BadgeState = 'ending_soon' | 'steal' | 'hot' | 'live'
 
-// Activity text rules per spec:
-// - 0 bids → "No bids yet" (always)
-// - hot + last bid within 60m → "last bid Xm ago"
-// - everything else → null (slot rendered empty)
-function getActivityText(
-  bidCount: number,
-  lastBidAt: string | null,
-  isHot: boolean
-): string | null {
-  if (bidCount === 0) return 'No bids yet'
-  if (!isHot || !lastBidAt) return null
-  const minutesAgo = (Date.now() - new Date(lastBidAt).getTime()) / 60_000
-  if (minutesAgo < 1) return 'last bid just now'
-  return minutesAgo < 60 ? `last bid ${Math.round(minutesAgo)}m ago` : null
-}
-
-const timerPillClass: Record<'gray' | 'amber' | 'red', string> = {
-  gray:  'bg-black/60 text-white',
-  amber: 'bg-amber-600/90 text-white',
-  red:   'bg-red-600/90 text-white',
+function getCardState(endsAt: string, bidCount: number): { badge: BadgeState; urgent: boolean } {
+  const msLeft = new Date(endsAt).getTime() - Date.now()
+  if (msLeft <= 0) return { badge: 'live', urgent: false }
+  const hoursLeft = msLeft / 3_600_000
+  const urgent = hoursLeft < 1
+  if (urgent && bidCount > 0) return { badge: 'ending_soon', urgent: true }
+  if (bidCount === 0 && hoursLeft < 24) return { badge: 'steal', urgent: false }
+  if (bidCount >= 5) return { badge: 'hot', urgent: false }
+  return { badge: 'live', urgent: false }
 }
 
 export default async function ListingCard({ listing }: Props) {
@@ -58,33 +39,22 @@ export default async function ListingCard({ listing }: Props) {
     ? supabase.storage.from('listing-photos').getPublicUrl(photo.storage_path).data.publicUrl
     : null
 
-  const { isHot, isWarm, timerVariant } = getCardState(listing.ends_at)
-  const isHeated = isWarm || isHot
-
-  const bidPillLabel =
-    listing.bid_count > 99
-      ? '99+'
-      : `${listing.bid_count} bid${listing.bid_count !== 1 ? 's' : ''}`
-  const activityText = getActivityText(
-    listing.bid_count,
-    listing.last_bid_at,
-    isHot
-  )
+  const { badge, urgent } = getCardState(listing.ends_at, listing.bid_count)
+  const hasNoBids = listing.bid_count === 0
+  const showStrikethrough = listing.retail_price != null && listing.retail_price > listing.current_bid
+  const bidLabel = hasNoBids
+    ? 'No bids yet'
+    : `${listing.bid_count} bid${listing.bid_count !== 1 ? 's' : ''}`
+  const subline = listing.seller_username
+    ? `${bidLabel} · @${listing.seller_username}`
+    : bidLabel
 
   return (
     <Link
       href={`/listings/${listing.id}`}
-      className={[
-        'group block rounded-2xl border overflow-hidden',
-        'hover:shadow-xl hover:shadow-violet-200/60 hover:-translate-y-1 hover:border-primary/30',
-        'transition-all duration-200 ease-out',
-        isHeated ? 'bg-amber-50/30 border-amber-200' : 'bg-card border-border',
-      ].join(' ')}
+      className="group block bg-white rounded-2xl border border-gray-200 overflow-hidden hover:border-gray-900 hover:shadow-lg transition-all duration-200 ease-out hover:-translate-y-0.5"
     >
-      {/* Image — aspect-[4/3] per spec (was aspect-square) */}
-      <div
-        className={`aspect-[4/3] bg-gradient-to-br ${cardGradient(listing.id)} relative overflow-hidden`}
-      >
+      <div className={`aspect-[4/3] bg-gradient-to-br ${cardGradient(listing.id)} relative overflow-hidden`}>
         {photoUrl ? (
           <Image
             src={photoUrl}
@@ -94,69 +64,68 @@ export default async function ListingCard({ listing }: Props) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className="text-5xl opacity-20" aria-hidden="true">
-              🏷️
-            </span>
+            <span className="text-5xl opacity-20" aria-hidden="true">🏷️</span>
           </div>
         )}
 
-        {/* Timer pill — color shifts with state; dot pulses only on hot */}
-        <div className="absolute top-2.5 right-2.5">
-          <div
-            className={`${timerPillClass[timerVariant]} transition-colors duration-300 text-[10px] font-bold px-2.5 py-1.5 rounded-xl flex items-center gap-1.5 leading-none backdrop-blur-md`}
-          >
-            <span
-              className={[
-                'w-1.5 h-1.5 rounded-full flex-shrink-0',
-                timerVariant === 'red'
-                  ? 'bg-white [animation:bid-pulse_2s_ease-in-out_infinite]'
-                  : 'bg-orange-400',
-              ].join(' ')}
-              aria-hidden="true"
-            />
-            <Countdown endsAt={listing.ends_at} />
-          </div>
-        </div>
+        {/* Status badge — top left, priority: ending_soon > steal > hot > live */}
+        {badge === 'ending_soon' && (
+          <span className="absolute top-2.5 left-2.5 bg-red-500 text-white text-[10px] font-extrabold px-2 py-1 rounded-full flex items-center gap-1">
+            <span className="inline-block w-1 h-1 rounded-full bg-white ticker" aria-hidden="true" />
+            ENDING SOON
+          </span>
+        )}
+        {badge === 'steal' && (
+          <span className="absolute top-2.5 left-2.5 bg-emerald-500 text-white text-[10px] font-extrabold px-2 py-1 rounded-full">
+            🌱 STEAL ALERT
+          </span>
+        )}
+        {badge === 'hot' && (
+          <span className="absolute top-2.5 left-2.5 bg-pink-500 text-white text-[10px] font-extrabold px-2 py-1 rounded-full flex items-center gap-1">
+            <span className="inline-block w-1 h-1 rounded-full bg-white ticker" aria-hidden="true" />
+            🔥 HOT
+          </span>
+        )}
+        {badge === 'live' && (
+          <span className="absolute top-2.5 left-2.5 bg-orange-500 text-white text-[10px] font-extrabold px-2 py-1 rounded-full flex items-center gap-1">
+            <span className="inline-block w-1 h-1 rounded-full bg-white ticker" aria-hidden="true" />
+            LIVE
+          </span>
+        )}
 
-        <div className="absolute bottom-0 inset-x-0 h-12 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
-      </div>
-
-      {/* Info section */}
-      <div
-        className={[
-          'p-3.5',
-          isHeated ? 'border-t-2 border-amber-300' : 'border-t-2 border-transparent',
-        ].join(' ')}
-      >
-        {/* Title anchors the card — item identity before price */}
-        <p className="text-sm font-bold text-foreground line-clamp-2 leading-snug mb-2">
-          {listing.title}
-        </p>
-
-        {/* Price + bid count on same row */}
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <p className="text-xl font-black text-primary leading-none">
-            {formatPHP(listing.current_bid)}
-          </p>
-          {listing.bid_count > 0 && (
-            <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0">
-              {bidPillLabel}
-            </span>
-          )}
-        </div>
-
-        {/* Activity line — ALWAYS rendered (h-4 reserves slot so card height never shifts).
-            Text is conditional; the element is not. */}
-        <p
+        {/* Time pill — top right; urgent turns white/red */}
+        <span
           className={[
-            'h-4 text-[10px] leading-4',
-            activityText === 'No bids yet'
-              ? 'text-gray-400'
-              : 'text-amber-600 font-semibold',
+            'absolute top-2.5 right-2.5 text-[10px] px-2 py-1 rounded-full backdrop-blur-sm',
+            urgent
+              ? 'bg-white/95 text-red-600 font-extrabold'
+              : 'bg-black/75 text-white font-bold',
           ].join(' ')}
         >
-          {activityText ?? ''}
-        </p>
+          ⏱ <Countdown endsAt={listing.ends_at} />
+        </span>
+
+        {/* Watching — bottom left, only when ≥ 5 */}
+        {listing.view_count >= 5 && (
+          <span className="absolute bottom-2.5 left-2.5 bg-white/95 backdrop-blur-sm text-gray-900 text-[10px] font-bold px-2 py-0.5 rounded-full">
+            {listing.view_count} 👀
+          </span>
+        )}
+      </div>
+
+      <div className="p-3.5">
+        <p className="text-sm font-bold text-gray-900 line-clamp-1">{listing.title}</p>
+        <p className="text-[11px] text-gray-500 mb-2">{subline}</p>
+        <div>
+          {showStrikethrough && (
+            <p className="text-[10px] text-gray-400 line-through leading-none">
+              {formatPHP(listing.retail_price!)}
+            </p>
+          )}
+          <p className="display text-lg font-extrabold text-gray-900 leading-tight mt-0.5">
+            {formatPHP(listing.current_bid)}
+          </p>
+        </div>
       </div>
     </Link>
   )

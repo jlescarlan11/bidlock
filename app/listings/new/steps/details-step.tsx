@@ -33,6 +33,7 @@ export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: 
   const watchedTitle       = watch('title')
   const watchedDescription = watch('description')
   const watchedBid         = watch('starting_bid')
+  const watchedRetailPrice = watch('retail_price')
   const watchedDuration    = watch('duration_days')
 
   const titleLen = (watchedTitle ?? '').length
@@ -59,6 +60,7 @@ export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: 
         title:        watchedTitle,
         description:  watchedDescription,
         starting_bid: watchedBid,
+        retail_price: watchedRetailPrice,
         duration_days: watchedDuration,
       }))
     }, 500)
@@ -113,6 +115,27 @@ export default function DetailsStep({ defaultValues, onNext, onPreviewChange }: 
           />
         </div>
         {errors.starting_bid && <p className="text-xs text-destructive mt-1">{errors.starting_bid.message}</p>}
+      </div>
+
+      <div>
+        <Label htmlFor="retail_price" className="text-sm font-medium mb-1.5 block">
+          Retail price <span className="text-muted-foreground font-normal">(optional)</span>
+        </Label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm select-none" aria-hidden="true">
+            ₱
+          </span>
+          <Input
+            id="retail_price"
+            type="number"
+            step="1"
+            className="pl-7"
+            placeholder="Original / market price"
+            {...register('retail_price')}
+          />
+        </div>
+        <p className="text-xs text-muted-foreground mt-1">Shown crossed out on the card so buyers see the deal.</p>
+        {errors.retail_price && <p className="text-xs text-destructive mt-1">{errors.retail_price.message}</p>}
       </div>
 
       <div>

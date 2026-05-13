@@ -21,7 +21,7 @@ export default async function HomePage() {
     // 4 teaser cards + live count in one query
     db.from('listings')
       .select(
-        'id, title, current_bid, ends_at, created_at, view_count, listing_photos(storage_path, display_order), bids(id), profiles!auctioneer_id(username)',
+        'id, title, current_bid, retail_price, ends_at, created_at, view_count, listing_photos(storage_path, display_order), bids(id), profiles!auctioneer_id(username)',
         { count: 'exact' }
       )
       .eq('status', 'live')
@@ -62,6 +62,7 @@ export default async function HomePage() {
     id: string
     title: string
     current_bid: number
+    retail_price: number | null
     ends_at: string
     view_count: number
     bid_count: number
@@ -74,6 +75,7 @@ export default async function HomePage() {
     id: l.id,
     title: l.title,
     current_bid: l.current_bid,
+    retail_price: l.retail_price ?? null,
     ends_at: l.ends_at,
     view_count: l.view_count ?? 0,
     bid_count: (l.bids ?? []).length,
@@ -89,6 +91,7 @@ export default async function HomePage() {
         id: featured.id,
         title: featured.title,
         current_bid: featured.current_bid,
+        retail_price: featured.retail_price ?? null,
         ends_at: featured.ends_at,
         view_count: featured.view_count ?? 0,
         bid_count: (featured.bids ?? []).length,

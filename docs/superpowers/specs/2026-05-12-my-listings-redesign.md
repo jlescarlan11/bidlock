@@ -98,7 +98,7 @@ Pill shape: `rounded-full border px-2 py-0.5 text-[10px] font-medium`
 
 Only Pending Payment has an active CTA — a filled amber pill button: `bg-amber-500 text-white px-2.5 py-0.5 rounded-full text-[11px] font-semibold` linking to `/listings/{id}/pay`.
 
-All other cards (Rejected, Live, Ended) are wrapped in a `<Link href="/listings/{id}">` making the entire card clickable. Under Review and Cancelled are not linked (no useful destination).
+All other cards (Rejected, Live, Ended) are wrapped in a `<Link href="/listings/{id}">` making the entire card clickable, with `hover:bg-muted/40 transition-colors` on the card element. Under Review and Cancelled are not linked (no useful destination) — render as `<div>`, no hover style, no pointer cursor.
 
 Pending Payment cards are also wrapped in a Link to the pay page so the whole card is clickable — the "Pay now" pill is a visual affordance only, not a separate `<a>`.
 

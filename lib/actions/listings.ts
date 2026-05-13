@@ -28,6 +28,7 @@ export async function createListing(
     title: formData.get('title'),
     description: formData.get('description'),
     starting_bid: formData.get('starting_bid'),
+    retail_price: formData.get('retail_price'),
     duration_days: formData.get('duration_days'),
   })
   if (!parsed.success) return { error: parsed.error.issues[0].message }
@@ -57,6 +58,7 @@ export async function createListing(
       description: parsed.data.description,
       starting_bid: parsed.data.starting_bid,
       current_bid: parsed.data.starting_bid,
+      retail_price: parsed.data.retail_price ?? null,
       duration_days: parsed.data.duration_days,
       listing_fee: settings.listing_fee,
       status: 'pending_payment',
