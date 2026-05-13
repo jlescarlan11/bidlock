@@ -68,13 +68,13 @@ export default async function PublicProfilePage({ params }: Props) {
   const [ratingsRes, liveRes, endedRes] = await Promise.all([
     db
       .from('ratings')
-      .select('verdict, comment, created_at, rater:rater_id(display_name)')
+      .select('id, verdict, comment, created_at, rater:rater_id(display_name)')
       .eq('ratee_id', profile.id)
       .order('created_at', { ascending: false })
       .limit(20),
     db
       .from('listings')
-      .select('id, title, current_bid, ends_at, listing_photos(storage_path, display_order), bids(created_at)')
+      .select('id, title, current_bid, starting_bid, ends_at, view_count, listing_photos(storage_path, display_order), bids(created_at)')
       .eq('auctioneer_id', profile.id)
       .eq('status', 'live')
       .order('ends_at', { ascending: true }),
@@ -112,8 +112,11 @@ export default async function PublicProfilePage({ params }: Props) {
         id: listing.id,
         title: listing.title,
         current_bid: listing.current_bid,
+        starting_bid: listing.starting_bid,
         ends_at: listing.ends_at,
         bid_count,
+        view_count: listing.view_count ?? 0,
+        seller_username: profile.username,
         last_bid_at,
         listing_photos: (listing.listing_photos ?? []).sort(
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -227,8 +230,8 @@ export default async function PublicProfilePage({ params }: Props) {
             ) : (
               <div className="space-y-3">
                 {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-                {ratings.map((rating: any, i: number) => (
-                  <div key={i} className="bg-white border border-border rounded-xl p-4">
+                {ratings.map((rating: any) => (
+                  <div key={rating.id} className="bg-white border border-border rounded-xl p-4">
                     <div className="flex items-start gap-3">
                       <span className="text-lg leading-none">{rating.verdict === 'up' ? '👍' : '👎'}</span>
                       <div className="flex-1 min-w-0">
