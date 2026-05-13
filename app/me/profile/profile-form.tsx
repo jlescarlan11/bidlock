@@ -8,12 +8,18 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 type Props = {
-  profile: { username: string | null; phone_number: string | null; gcash_name: string | null } | null
+  profile: {
+    display_name: string | null
+    phone_number: string | null
+    gcash_name: string | null
+    username: string | null
+  } | null
 }
 
 export default function ProfileForm({ profile }: Props) {
   const [state, action, pending] = useActionState(upsertProfile, undefined)
   const [username, setUsername] = useState(profile?.username ?? '')
+  const [displayName, setDisplayName] = useState(profile?.display_name ?? '')
   const [phoneNumber, setPhoneNumber] = useState(profile?.phone_number ?? '')
   const [gcashName, setGcashName] = useState(profile?.gcash_name ?? '')
 
@@ -26,8 +32,22 @@ export default function ProfileForm({ profile }: Props) {
     <form action={action} className="space-y-4">
       <div className="space-y-1">
         <Label htmlFor="username">Username</Label>
-        <Input id="username" name="username" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <p className="text-xs text-muted-foreground">3–20 characters. Letters, numbers, underscores only.</p>
+        <Input
+          id="username"
+          name="username"
+          placeholder="your_handle"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+        />
+        <p className="text-xs text-muted-foreground">
+          {username.trim()
+            ? `Your public URL: bidlock.ph/users/${username.trim().toLowerCase()}`
+            : 'Set a username to get a public profile URL'}
+        </p>
+      </div>
+      <div className="space-y-1">
+        <Label htmlFor="display_name">Display name</Label>
+        <Input id="display_name" name="display_name" value={displayName} onChange={(e) => setDisplayName(e.target.value)} required />
       </div>
       <div className="space-y-1">
         <Label htmlFor="phone_number">Phone number</Label>
